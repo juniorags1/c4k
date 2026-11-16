@@ -1,0 +1,54 @@
+# Casa4K
+
+Addon Stremio e servidor local .NET para preparar mídia no PC e reproduzir na TV. **Versão 0.1: ferramenta de prova de compatibilidade**, com cadastro de arquivos completos e diagnóstico de eventos. Download, busca de fontes e antecipação de episódios serão implementados nas próximas fases.
+
+## Iniciar no PC
+
+Com SDK .NET 10.0.400 instalado, na raiz do projeto:
+
+```powershell
+dotnet run --project src/Casa4K.App
+```
+
+Abra **http://127.0.0.1:48241/admin/**. Coloque um arquivo completo na pasta indicada no painel e cadastre seu nome relativo. Use uma mídia autorizada que já tenha terminado de baixar. Cadastro não certifica integridade, codecs ou capacidade da TV. MP4, MKV, WEBM e M4V são aceitos; não há transcodificação.
+
+Copie o manifest privado pelo painel e instale diretamente no Stremio. No catálogo Casa4K, abra a amostra cadastrada. Para associar arquivo a uma obra existente, use o IMDb correto; episódios usam o ID da série seguido de `:temporada:episódio`. Primeiro teste filme com ID local `c4k:amostra` para separar a prova de rede da associação de metadados.
+
+PC e TV devem estar na mesma LAN e o PC precisa permanecer ligado. O host escuta na porta **48240** para addon/mídia; painel e dados administrativos só na porta loopback **48241**. Se o Windows solicitar liberação de rede, permita apenas rede privada. O programa não altera firewall nem roteador. Não encaminhe portas para a internet.
+
+O endereço LAN é detectado automaticamente por interface ativa com gateway. Se houver VPN ou endereço incorreto, configure antes de iniciar:
+
+```powershell
+$env:CASA4K_PUBLIC_URL = 'http://192.168.1.50:48240'
+dotnet run --project src/Casa4K.App
+```
+
+Use o IP real do PC, preferencialmente reservado no DHCP. O link de instalação contém uma chave de acesso; não publique nem compartilhe. HTTP doméstico não cifra tráfego. Suporte a instalação HTTP LAN precisa ser confirmado na TV. Nenhum certificado ou túnel é exigido ou instalado automaticamente.
+
+## Dados locais e diagnóstico
+
+Por padrão, `%LOCALAPPDATA%\Casa4K` contém `secrets.json`, `casa4k.db` e a pasta `media`. Proteja esse diretório como dados privados. Não o coloque no Git. `secrets.json` mantém dois tokens separados (addon/mídia), fora das URLs de log e independentes do painel. Para revogar o pareamento nesta prova, pare o host, remova somente `secrets.json` e reinicie; será necessário reinstalar o novo manifest.
+
+Variáveis opcionais: `CASA4K_DATA_DIR`, `CASA4K_MEDIA_ROOT`, `CASA4K_ADDON_PORT`, `CASA4K_ADMIN_PORT`, `CASA4K_PUBLIC_URL`. O painel não permite registrar caminho fora da raiz de mídia ou links simbólicos/junctions. Não altere os arquivos registrados durante reprodução.
+
+O painel mostra os últimos 100 eventos recebidos; banco retém até 5.000. A presença de `libraryAdd` ou `start` só demonstra um evento recebido: requests simuladas não aprovam compatibilidade com Stremio Android TV. Não há importação de biblioteca antiga ou replay garantido. Reprodução por player externo pode mudar os eventos disponíveis.
+
+## Verificação automatizada
+
+```powershell
+dotnet build src/Casa4K.App -c Release
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Smoke-Test.ps1
+dotnet publish src/Casa4K.App -c Release -r win-x64 --self-contained true -o artifacts/win-x64
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Smoke-Test.ps1 -Published
+```
+
+Após publicação, execute `artifacts\win-x64\Casa4K.App.exe` sem SDK. Ainda é uma pasta de distribuição, não o instalador definitivo. O teste automatizado usa fixture binária para contratos HTTP e não substitui vídeo 4K real.
+
+Para iniciar em segundo plano: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-Casa4K.ps1 -Background`. Para encerrar esse processo: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Stop-Casa4K.ps1`. O launcher registra apenas o PID em artifacts e não abre janelas.
+
+## Testar na TCL C6K
+
+1. Registrar versão exata do Stremio e player usado, além de Android TV 14.
+2. Instalar o manifest; reproduzir vídeo completo, testar áudio/legendas, três seeks e 60 minutos de sessão.
+3. Adicionar/remover obra na biblioteca e iniciar/pausar/encerrar vídeos por fonte Casa4K e outra fonte; consultar eventos no painel.
+4. Registrar resultado conforme [.planning/phases/01-stremio-compatibility/01-VALIDATION.md](.planning/phases/01-stremio-compatibility/01-VALIDATION.md). Esses testes físicos permanecem pendentes até execução real.
