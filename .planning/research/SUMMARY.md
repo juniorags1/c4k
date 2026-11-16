@@ -1,13 +1,11 @@
-# Recomendação executiva
+# Recomenda??o vigente ? Stremio principal
 
-Começar com qBittorrent e Jellyfin instalados nativamente no PC, com biblioteca de arquivos completos, e o app Jellyfin na Google TV. Validar um vídeo representativo antes de desenvolver. Construir Casa4K .NET apenas para simplificar desejos, fila, disco e instalação. Se Radarr/Sonarr atenderem ao fluxo desejado com configuração aceitável, adotá-los pode evitar código próprio.
+Usu?rio escolheu addon Stremio; TV informada TCL C6K Android TV 14, Stremio atual sem build num?rica. Casa4K ser? host .NET que atende addon e v?deo local; qBittorrent nativo prepara arquivos completos. Jellyfin ? opcional. Instalador Windows self-contained, sem Docker.
 
-Fluxo alvo: adicionar desejo no painel → informar fonte ou aguardar uma → baixar no PC → verificar → publicar no Jellyfin → assistir pela LAN. Poucos seeders deixam de afetar a sessão depois da conclusão; ainda podem atrasar ou impedir a preparação. Wi-Fi, codecs, legendas e PC acordado continuam sendo condições.
+Ao iniciar epis?dio, manter os dois seguintes preparados, sujeito a fontes e quota. Eventos player/library existem na documenta??o e no core p?blicos; n?o foi comprovada vers?o Android TV. Se eventos n?o chegarem, observar consumo HTTP de m?dia pr?pria permite modo local com entrada inicial pelo painel. N?o detecta com seguran?a reprodu??o por outros addons.
 
-Stremio tem duas necessidades independentes: reproduzir uma URL local por addon e ler a lista pessoal da conta. A primeira tem suporte documental de protocolo, mas rede/autenticação precisam ser provadas na TV; a segunda não foi comprovada nas APIs de addons consultadas. Não vender a lista própria como sincronização já resolvida. Roadmap inclui investigação explícita e decisão documentada.
+Usu?rio quer manter duas op??es de fontes: addon configurado e torrent/link manual. Evento n?o fornece fonte do epis?dio; resolvedor consulta provedor explicitamente cadastrado. Nunca presumir acesso autom?tico aos addons/segredos da conta.
 
-Instalador Windows inclui aplicação self-contained e coordena componentes nativos; não implica que Jellyfin e qBittorrent estejam embutidos num único executável .NET. Antes de redistribuir binários, registrar versões, licenças, procedência, hashes e avisos; alternativa é instalador obter artefatos oficiais verificados. Operação local não exige internet após preparação; instalação inicial e aquisição podem exigir.
+Primeira fase prova transporte LAN, reprodu??o, eventos/fallback e fonte m?nima na TV. Sem esse teste n?o prometer automa??o plena. Arquivos completos removem seeders da sess?o, mas n?o garantem aquisi??o de fonte rara nem corrigem Wi-Fi/codecs.
 
-Confiança alta em download completo + Jellyfin nativo; média na experiência final do instalador; pendente em hardware/Wi-Fi e integração de conta Stremio. Nenhum teste de TV ou instalação foi executado nesta sessão.
-
-Detalhes e fontes: [STACK.md](STACK.md), [FEATURES.md](FEATURES.md), [ARCHITECTURE.md](ARCHITECTURE.md), [PITFALLS.md](PITFALLS.md).
+Especifica??o: [STREMIO-DESIGN.md](../STREMIO-DESIGN.md). Evid?ncias: [STREMIO-SOURCES.md](STREMIO-SOURCES.md). Proposta inicial centrada em Jellyfin preservada em archive/ apenas como hist?rico.

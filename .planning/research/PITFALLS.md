@@ -1,24 +1,20 @@
-# Riscos e verificações
+# Riscos vigentes
 
-| Risco | Sinal | Prevenção / prova | Fase |
-|---|---|---|---|
-| Fonte sem cópia completa | Job não progride | Timeout configurável, status sem progresso, troca manual; nunca garantir obtenção | 3 |
-| Wi-Fi abaixo dos picos | Arquivo local também trava | Medir PC–TV e executar filme completo; PC por cabo quando possível | 1 |
-| Codec/HDR/áudio incompatível | Jellyfin transcodifica ou imagem incorreta | Matriz da TV com HEVC 10-bit, HDR, áudio e legendas reais | 1 |
-| Legendas forçam burn-in | CPU alta ao ativar legenda | Testar SRT e legendas embutidas; preferir alternativa compatível | 1 |
-| Disco lota durante importação | Download completo, cópia falha | Reservas, limite total e checagem antes de copiar; hardlinks quando viável | 4 |
-| Arquivo parcial publicado | Player para no meio | Pastas separadas e promoção somente após conclusão verificada | 3–4 |
-| Duplicação após crash | Dois jobs para o mesmo desejo | Chave idempotente, reconciliação e transições transacionais | 3 |
-| Seeding quebrado por rename | qBittorrent perde arquivo | Hardlink/cópia sem mover origem; contabilizar hardlinks corretamente | 4 |
-| PC dorme | Biblioteca desaparece | Configuração de energia explícita; informar necessidade de PC acordado | 1, 6 |
-| Addon confundido com sync | Desejo na TV não chega ao PC | Provas independentes, lista própria como fallback explícito | 5 |
-| Instalador só funciona no dev | Falta runtime ou porta em conflito | VM Windows limpa, update e uninstall preservando mídia | 6 |
-| Interface administrativa exposta | Acesso sem credencial na LAN | Loopback padrão, autenticação e firewall privado | 2, 6 |
+| Risco | Controle | Fase |
+|---|---|---|
+| Documento do core n?o comprova Android TV | Prova real em TCL C6K com build/player registrados | 1 |
+| Manifest n?o instala por transporte/TLS | Testar HTTP LAN primeiro e declarar requisitos extras | 1 |
+| Evento perde-se com PC desligado | Sem garantia de replay; entrada manual e modo local expl?citos | 1, 4 |
+| Consultar stream ? confundido com assistir | Nenhum job por consulta/HEAD; observar m?dia com confian?a limitada | 2, 4 |
+| Evento n?o revela fonte | Resolvedor por provedor cadastrado ou entrada manual | 3 |
+| Pacote associa arquivo errado | Mapear fileIndex ao epis?dio, pedir sele??o se amb?guo | 3 |
+| Poucos seeders impedem conclus?o | Stalled/NoSource e troca limitada, sem prometer obten??o | 3 |
+| Repeti??o/seek cria fila ilimitada | Inbox, inten??o ?nica e quotas | 4, 5 |
+| Infer?ncia HTTP apaga m?dia assistida parcialmente | Nenhuma exclus?o autom?tica por infer?ncia | 5 |
+| Wi-Fi/codecs/legendas causam travamento | Teste f?sico 4K, seek e perfil compat?vel | 1 |
+| Tokens/caminhos administrativos vazam | Capacidades separadas, logs sanitizados, admin loopback e SSRF/path guards | 2, 3, 6 |
+| App s? funciona no PC dev | VM Windows limpa e atualiza??o preservando dados | 6 |
 
-Dimensionamento ilustrativo, não medição: 25 GB decimais em duas horas ≈ 27,8 Mbit/s médios; 80 GB ≈ 88,9 Mbit/s. Picos podem ser muito maiores. Meta de engenharia: throughput sustentado com margem sobre o pico observado (começar avaliando 1,5–2 vezes); 4K não determina bitrate sozinho. Ethernet 100 Mbit/s na TV pode limitar remux de alto bitrate; verificar capacidade real antes de trocar Wi-Fi por cabo.
+C?lculos ilustrativos: 80 GB decimais em duas horas s?o cerca de 88,9 Mbit/s m?dios, sem picos. 40 GB a 50 Mbit/s levam pelo menos 1h47; iniciar pr?ximo download nos cr?ditos pode ser tarde. Quota deve contar reserva e poss?vel c?pia adicional. Nada disso ? benchmark da rede do usu?rio.
 
-Dez filmes de 30 GB ocupam 300 GB, além de temporários, possíveis cópias, metadados e reserva. SSD não é obrigatório para um único stream; capacidade e desempenho efetivo importam. Download de 40 GB a 50 Mbit/s leva no mínimo ~1h47, sem overhead ou falta de peers: pré-carregar significa esperar antes da sessão.
-
-Aceitação sugerida: arquivo 4K completo na TV, reprodução contínua por 60 minutos sem rebuffer após início, três seeks recuperando em até cinco segundos; repetir com legendas habituais. Meta a validar, não resultado já obtido. Desconectar WAN preservando LAN deve manter reprodução da biblioteca local Jellyfin. Addon Stremio tem teste separado, pois catálogo/login podem depender de serviços externos.
-
-Fonte para compatibilidade e legendas: [Jellyfin Codec Support](https://jellyfin.org/docs/general/clients/codec-support/). Cálculos e metas são propostas do projeto.
+Detalhes e metas de teste em [STREMIO-DESIGN.md](../STREMIO-DESIGN.md); evid?ncias em [STREMIO-SOURCES.md](STREMIO-SOURCES.md).

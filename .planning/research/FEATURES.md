@@ -1,27 +1,9 @@
-# Opções e escopo funcional
+# Funcionalidades vigentes
 
-## Comparação
+Essenciais: fonte Casa4K no detalhe Stremio, cat?logo Ready, reprodu??o HTTP com seek, pareamento local, painel de prepara??o, fonte manual e addon configur?vel, jobs recuper?veis, janela de pr?ximos epis?dios, quota e instalador.
 
-| Caminho | Trabalho próprio | Instalação | Adequação |
-|---|---|---|---|
-| qBittorrent + Jellyfin | Nenhum | Instaladores nativos separados | Melhor prova inicial: baixar e assistir localmente |
-| Radarr + Sonarr + qBittorrent + Jellyfin | Pouco ou nenhum | Componentes nativos Windows | Bom se aceitar painéis separados e configurar provedores; pode dispensar Casa4K |
-| Casa4K .NET + qBittorrent + Jellyfin | Moderado | Instalador coordenado | Escolhido para lista unificada, status e fluxo doméstico simples |
-| Casa4K + addon Stremio | Maior | Mesmo PC, instalação do addon na conta/TV | Preserva player preferido se teste LAN e protocolo passar |
-| Cache remoto/debrid | Pouco | Depende de terceiro e conta | Não atende plenamente a servidor local standalone; cache não garante título raro |
+Padr?o proposto: preparar dois epis?dios adiante ao iniciar atual; janela configur?vel de um a cinco e limite global. Eventos player/library s?o preferidos se comprovados no cliente; consumo HTTP pr?prio ? fallback de confian?a limitada. N?o marcar assistido por bytes enviados.
 
-Radarr já oferece seleção/perfis de filmes; Sonarr cobre séries e episódios. Ambos oferecem distribuição Windows. Não acrescentar esses dois como dependências obrigatórias se a versão inicial aceitar fontes explícitas e apenas coordenar os downloads. Se busca automática completa virar prioridade, preferir seus adaptadores a reimplementar indexadores.
+Depois: notifica??es, servi?o antes do login, importa??o de hist?rico anterior e m?ltiplos perfis reais. Jellyfin/Radarr/Sonarr continuam alternativas de integra??o, sem obrigatoriedade ou duplica??o de servi?os no MVP.
 
-## Essencial para v1
-
-Lista própria com identidade de filme ou série/temporada/episódio; fonte fornecida; perfis de preferência e limite de tamanho; fila com retomada; estados honestos; importação integral; publicação Jellyfin; proteção de espaço; configuração por navegador; instalador e diagnóstico. Um desejo sem fonte permanece aguardando fonte, nunca simula download automático.
-
-## Diferenciais posteriores
-
-Catálogo de prontos no Stremio; fonte local associada a IMDb/episódio; monitoramento de novos episódios; integração com listas externas documentadas; notificações; múltiplos perfis e retenção por histórico.
-
-## Não construir inicialmente
-
-Player, transcodificador, indexador universal, cliente BitTorrent, sincronização de credenciais Stremio por engenharia reversa, promessa de recuperar torrent morto. Lista de desejos de conta Stremio não é equivalente a catálogo de addon: documentação consultada descreve recursos de catálogo e stream, não comprovou eventos de alteração da lista pessoal.
-
-Fontes: [Radarr](https://radarr.video/), [Sonarr](https://sonarr.tv/), [catálogo Stremio](https://stremio.github.io/stremio-addon-sdk/api/requests/defineCatalogHandler.html), [streams Stremio](https://stremio.github.io/stremio-addon-sdk/api/requests/defineStreamHandler.html). Comparações de esforço são avaliação de arquitetura, não benchmarks.
+N?o oferecer player pr?prio, download parcial como pronto, heran?a autom?tica de addons da conta ou captura de senha. Ver [design](../STREMIO-DESIGN.md) e [evid?ncias](STREMIO-SOURCES.md).

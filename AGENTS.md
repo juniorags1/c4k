@@ -4,15 +4,17 @@
 
 **Casa4K**
 
-Servidor doméstico para preparar filmes e episódios no PC antes de assistir na Google TV. Uma lista de desejos alimenta uma fila persistente de downloads; somente arquivos completos são publicados na biblioteca local. O software próprio será .NET e distribuído por instalador Windows, sem Docker, com reprodução inicialmente pelo Jellyfin e integração Stremio sujeita a prova de compatibilidade.
+Addon Stremio e servidor .NET que prepara filmes e episódios no PC para assistir na TCL C6K com Android TV 14. Ao iniciar um episódio, assegura os dois seguintes na fila e publica somente arquivos completos como fontes locais no Stremio. Instalador Windows sem Docker; Jellyfin fica como alternativa opcional.
 
 **Core Value:** Assistir na TV a um título previamente baixado no PC, pela rede doméstica, sem depender de seeders durante a sessão.
 
 ### Constraints
 
+Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou TCL C6K Android TV 14 e Stremio atual sem build numérica. Deseja ambas as opções de fontes, addon configurado e entrada manual. Eventos têm documentação e implementação pública; suporte na TV ainda precisa de prova. Design vigente: [STREMIO-DESIGN.md](STREMIO-DESIGN.md).
+
 - **Backend:** C# / ASP.NET Core .NET 10 LTS, patch suportado fixado ao implementar.
 - **Distribuição:** Windows 11 x64 presumido; confirmar sistema do PC. Publicação self-contained e instalador; SDK, Node, Docker e banco externo não serão requisitos de execução.
-- **Reprodução:** Jellyfin oficial na Google TV como caminho recomendado; continuar usando exclusivamente Stremio ainda precisa de validação.
+- **Reprodução:** Stremio na TCL C6K Android TV 14 como cliente principal; Jellyfin opcional. Registrar build/player no teste.
 - **Disponibilidade:** PC ligado e acordado durante downloads e reprodução; mídia fica no disco local.
 - **Rede:** desempenho precisa ser medido entre PC e TV; nenhuma promessa universal de ausência de travamentos.
 - **Custo:** priorizar software gratuito e equipamento existente; disco e rede dimensionados após medição.
@@ -25,24 +27,16 @@ Servidor doméstico para preparar filmes e episódios no PC antes de assistir na
 
 ## Technology Stack
 
-| Componente | Escolha | Por quê | Confiança |
-|---|---|---|---|
-| Aplicação própria | C#, ASP.NET Core .NET 10 LTS | Backend pedido e distribuição self-contained | Alta |
-| Interface | Razor Pages, HTML/CSS e JS pequeno | Interface no navegador, sem runtime frontend separado | Alta |
-| Persistência | SQLite + EF Core 10 | Estado local transacional e migrações | Alta |
-| Trabalho assíncrono | BackgroundService com jobs persistidos | Poucos downloads; não exige broker ou serviço externo | Alta |
-| Downloads torrent | qBittorrent nativo, Web API 5.x compatível | Pausa, retomada, progresso e estado consolidados | Alta documental; versão a fixar |
-| Biblioteca/TV | Jellyfin nativo Windows + cliente Android TV | Evita player e transcodificação próprios | Alta documental; TV a validar |
-| Instalador | Inno Setup, versão estável a fixar | Atalhos, desinstalação e coordenação de processos | Alta |
-| Stremio | Adaptador HTTP implementado em .NET | Protocolo JSON pode ser atendido sem SDK Node | Média; rede/cliente a provar |
-- [.NET e suporte LTS](https://learn.microsoft.com/en-us/dotnet/core/releases-and-support)
-- [Publicação single-file e self-contained](https://learn.microsoft.com/en-us/dotnet/core/deploying/single-file/overview)
-- [ASP.NET Core como serviço Windows](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/windows-service)
-- [Jellyfin Windows](https://jellyfin.org/docs/general/installation/windows/)
-- [Clientes Jellyfin](https://jellyfin.org/downloads.html/)
-- [API qBittorrent 5.0+](https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-5.0))
-- [Inno Setup](https://jrsoftware.org/isinfo.php)
-
+| Componente | Escolha | Confian?a |
+|---|---|---|
+| Host/addon/m?dia/painel | C# e ASP.NET Core .NET 10 LTS | Alta documental |
+| UI | Razor Pages e JS pequeno | Alta |
+| Persist?ncia | SQLite e EF Core 10 | Alta; vers?o patch fixada ao implementar |
+| Jobs | BackgroundService e inten??es/inbox persistidos | Proposta a testar |
+| Download | qBittorrent nativo por Web API em loopback | Alta documental; vers?o negociada |
+| TV | Stremio na TCL C6K Android TV 14 | Reprodu??o LAN e eventos pendentes |
+| Instalador | Inno Setup, app self-contained win-x64 | Proposta; VM limpa na fase 6 |
+| Jellyfin | Opcional, sem depend?ncia no caminho principal | Fora do MVP obrigat?rio |
 <!-- GSD:stack-end -->
 
 <!-- GSD:conventions-start source:CONVENTIONS.md -->
@@ -56,14 +50,14 @@ Conventions not yet established. Will populate as patterns emerge during develop
 
 ## Architecture
 
-Proposed architecture: [.planning/research/ARCHITECTURE.md](.planning/research/ARCHITECTURE.md). No application code exists yet.
+Canonical proposed architecture: [.planning/STREMIO-DESIGN.md](.planning/STREMIO-DESIGN.md). No application code exists yet.
 <!-- GSD:architecture-end -->
 
 <!-- GSD:skills-start source:skills/ -->
 
 ## Project Skills
 
-Project GSD skills are available in `.codex/skills/`; read the selected skill's `SKILL.md` before invoking its workflow.
+Project GSD skills are in .codex/skills/. Read the selected SKILL.md before its workflow.
 <!-- GSD:skills-end -->
 
 <!-- GSD:workflow-start source:GSD defaults -->

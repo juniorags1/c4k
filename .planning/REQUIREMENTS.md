@@ -1,87 +1,100 @@
-# Requirements: Casa4K
+# Requirements: Casa4K ? addon Stremio
 
-**Defined:** 2026-11-15
-**Core Value:** Assistir conteúdo preparado no PC pela rede local sem depender de seeders na sessão.
+**Revised:** 2026-11-15
 
-Escopo proposto a partir do pedido e pesquisa, sem validação de hardware. Lista própria é o ponto de entrada de v1; lista pessoal do Stremio tem investigação explícita e não está prometida como sincronização entregue.
+**Core Value:** Assistir conte?do preparado no PC pelo Stremio sem depender de seeders durante a sess?o.
+
+Alvo confirmado: TCL C6K Android TV 14, Stremio atual sem build num?rica. Usu?rio escolheu manter addon de fontes e entrada manual. Nenhuma capacidade implementada. IDs anteriores preservados com escopo atualizado; Jellyfin deixou de ser obrigat?rio. Design vigente: [STREMIO-DESIGN.md](STREMIO-DESIGN.md).
 
 ## v1 Requirements
 
-### Validação doméstica
+### Compatibilidade e addon
 
-- [ ] **PLAY-01**: Usuário reproduz arquivo 4K completo no Jellyfin da Google TV, com registro de codec, áudio, legenda e modo de reprodução.
-- [ ] **PLAY-02**: Usuário recebe diagnóstico PC–TV e comprova 60 minutos sem rebuffer após início, três seeks em até cinco segundos e reprodução com WAN desligada/LAN ativa, para arquivo representativo.
+- [ ] **STRE-01**: Usu?rio pode instalar manifest privado e reproduzir m?dia pronta pelo addon na TCL C6K Android TV 14; registrar build/player exatos, transporte LAN e autentica??o.
+- [ ] **STRE-02**: Usu?rio pode receber matriz real dos eventos player/library do cliente alvo e modo de atividade comprovado, sem presumir suporte por documenta??o.
+- [ ] **PLAY-01**: Usu?rio pode assistir arquivo 4K completo via PC no Stremio, registrando codec, ?udio, HDR quando aplic?vel e legendas habituais.
+- [ ] **PLAY-02**: Usu?rio pode validar diagn?stico PC?TV, sess?o de 60 minutos sem rebuffer ap?s in?cio, tr?s seeks em at? cinco segundos e depend?ncia WAN separada da leitura local.
+- [ ] **ADDN-01**: Usu?rio pode encontrar arquivos Ready como fonte Casa4K nos IDs can?nicos e cat?logo de prontos, sem stream parcial ou fict?cio.
+- [ ] **ADDN-02**: Usu?rio pode fazer seek por HTTP Range autenticado; HEAD, intervalo inv?lido e token revogado t?m comportamento correto.
+- [ ] **CONF-01**: Usu?rio pode configurar e parear por painel local autenticado, sem edi??o de c?digo ou segredos em logs.
 
-### Desejos e configuração
+### Inten??o e fontes
 
-- [ ] **WISH-01**: Usuário adiciona, lista e remove desejos de filme ou série com escopo de temporada/episódio, sem duplicatas de identidade.
-- [ ] **WISH-02**: Usuário associa magnet, torrent autorizado ou URL HTTP(S) permitida e importa arquivo local; desejo sem fonte mostra AguardandoFonte.
-- [ ] **WISH-03**: Usuário define prioridade, preferência de qualidade/idioma e limite de tamanho; preferências não garantem disponibilidade de fonte.
-- [ ] **CONF-01**: Usuário configura pastas e conexões por painel local autenticado, sem editar código; segredos não aparecem em logs.
+- [ ] **WISH-01**: Usu?rio pode acompanhar filmes/s?ries e definir epis?dio inicial no painel sem depender de hist?rico privado da conta.
+- [ ] **WISH-02**: Usu?rio pode fornecer torrent/magnet autorizado, URL HTTP(S) suportada ou arquivo local, com associa??o expl?cita de epis?dio em pacotes.
+- [ ] **WISH-03**: Usu?rio pode configurar qualidade, idioma, tamanho, prioridade e janela de um a cinco epis?dios; fallback de qualidade exige op??o expl?cita.
+- [ ] **SRCE-01**: Usu?rio pode configurar um addon de fontes e consultar pr?ximos epis?dios com candidatos suportados; comprovar um provedor real em teste.
+- [ ] **SRCE-02**: Usu?rio pode distinguir fonte ausente, incompat?vel, expirada e indispon?vel; fluxo manual funciona sem addon de fontes.
 
-### Preparação
+### Downloads
 
-- [ ] **DOWN-01**: Usuário acompanha fila persistente e progresso real via qBittorrent, com seleção explícita de arquivos para episódios em torrent multifile.
-- [ ] **DOWN-02**: Usuário pausa, retoma e cancela jobs; reinício reconcilia jobs sem duplicar downloads ou perder desejos.
-- [ ] **DOWN-03**: Usuário distingue sem progresso, falha, falta de espaço e fonte ausente, podendo substituir fonte sem publicação falsa de conteúdo pronto.
-- [ ] **DOWN-04**: Downloads HTTP(S) retomam quando suportado pela origem, verificam conclusão e rejeitam destinos/redirects não permitidos; origem sem retomada reinicia de modo explícito.
+- [ ] **DOWN-01**: Usu?rio pode acompanhar qBittorrent por API com sele??o do arquivo correto, sem escolher maior arquivo implicitamente em pacotes amb?guos.
+- [ ] **DOWN-02**: Usu?rio pode pausar/retomar/cancelar jobs; rein?cio reconcilia estado antes de reenviar tarefas.
+- [ ] **DOWN-03**: Usu?rio pode ver sem progresso, falha e falta de espa?o, com retries limitados e nenhuma publica??o falsa de pronto.
+- [ ] **DOWN-04**: Usu?rio pode preparar HTTP(S) integral com retomada quando suportada, valida??o de redirects/destinos e recusa de esquemas n?o suportados.
+
+### Antecipa??o
+
+- [ ] **AUTO-01**: Usu?rio pode in?cio confirmado assegura inten??es ?nicas dos pr?ximos K epis?dios eleg?veis, padr?o proposto K=2, respeitando quota e jobs existentes.
+- [ ] **AUTO-02**: Usu?rio pode sem eventos, consumo HTTP local pode antecipar pr?ximos epis?dios; consulta de fontes e HEAD n?o significam reprodu??o nem marcam assistido.
+- [ ] **AUTO-03**: Usu?rio pode respeitar sequ?ncia can?nica, fim de temporada, especiais configurados, n?o lan?ados, replays e cancelamentos sem regress?o por observa??o atrasada.
+- [ ] **AUTO-04**: Usu?rio pode tolerar eventos duplicados/seek e rein?cios sem duplicar downloads; perda de eventos e incerteza de progresso s?o expl?citas.
 
 ### Biblioteca e disco
 
-- [ ] **LIBR-01**: Usuário vê apenas arquivos completos e verificados publicados em biblioteca separada dos incompletos, com identidade e nomes adequados ao Jellyfin.
-- [ ] **LIBR-02**: Usuário vê estado de indexação Jellyfin separado do download; falha de atualização permite retry sem baixar novamente.
-- [ ] **DISK-01**: Usuário define teto e reserva de disco; aplicação bloqueia novos jobs/importações sem capacidade e considera cópia adicional e hardlinks.
-- [ ] **DISK-02**: Usuário remove mídia por ação explícita com impacto visível em biblioteca e download/seeding; não há exclusão automática de título não assistido por padrão.
+- [ ] **LIBR-01**: Usu?rio pode publicar s? arquivo completo verificado, sem mover origem ativa de seeding ou exibir c?pia parcial.
+- [ ] **LIBR-02**: Usu?rio pode restaurar Ready/identidades ap?s rein?cio e atualizar lista de fontes com cache curto sem baixar novamente.
+- [ ] **DISK-01**: Usu?rio pode aplicar quota e reserva considerando c?pia adicional, hardlinks e m?ltiplas s?ries.
+- [ ] **DISK-02**: Usu?rio pode remover m?dia manualmente com impacto expl?cito e prote??o a arquivo em leitura; n?o apagar por progresso inferido.
 
-### Integração Stremio: decisão de viabilidade
+### Distribui??o
 
-- [ ] **STRE-01**: Usuário recebe prova documentada de addon local no cliente Google TV, incluindo instalação, transporte, autenticação, URL de arquivo pronto e seek; se inviável, recebe motivo e fallback Jellyfin explícitos.
-- [ ] **STRE-02**: Usuário recebe decisão fundamentada sobre detectar sua lista pessoal Stremio: API/autorização suportada comprovada ou limitação documentada e alternativa por lista própria. Não equivale à sincronização implementada.
-
-### Distribuição
-
-- [ ] **DIST-01**: Usuário instala Casa4K em Windows x64 limpo por instalador, sem Docker, SDK ou runtime .NET pré-instalado, com detecção/configuração dos componentes nativos.
-- [ ] **DIST-02**: Usuário inicia pelo menu e no login, vê estado dos componentes e orientação de energia/rede; firewall limita portas à rede privada e qBittorrent permanece em loopback.
-- [ ] **DIST-03**: Usuário atualiza/desinstala sem apagar mídia e desejos por padrão; versões, procedência e licenças dos componentes são registradas, com backup de dados antes de migração.
+- [ ] **DIST-01**: Usu?rio pode instalar .NET self-contained e depend?ncias nativas em Windows x64 limpo sem Docker, SDK ou runtime compartilhado obrigat?rio.
+- [ ] **DIST-02**: Usu?rio pode iniciar no login e diagnosticar rede/energia; admin e qBittorrent em loopback, addon/m?dia apenas LAN privada.
+- [ ] **DIST-03**: Usu?rio pode preservar m?dia/dados em update/uninstall por padr?o; backup de migra??o, proced?ncia, vers?es e licen?as registrados.
 
 ## v2 Requirements
 
-- **SYNC-01**: Sincronizar lista Stremio somente se STRE-02 comprovar interface estável e autorizada.
-- **ADDN-01**: Entregar addon de reprodução e catálogo Stremio completo se STRE-01 passar; manter cliente Jellyfin alternativo.
-- **AUTO-01**: Buscar fontes automaticamente e monitorar novos episódios por adaptadores Radarr/Sonarr ou provedores suportados.
-- **META-01**: Busca de metadados com capas e identificação assistida por provedor documentado.
-- **NOTF-01**: Notificar conclusão e permitir horários de download.
-- **SERV-01**: Operar antes do login por serviço Windows se necessário e comprovado com dependências.
+- **SYNC-01**: Importar hist?rico/biblioteca anterior e recuperar eventos perdidos por interface est?vel autorizada, se comprovada.
+- **NOTF-01**: Notifica??es e hor?rios de download.
+- **SERV-01**: Servi?o antes do login se necess?rio e validado.
+- **JELL-01**: Jellyfin opcional como player alternativo.
+- **PROF-01**: Perfis distintos com identidade comprovada; MVP usa perfil dom?stico por token.
 
 ## Out of Scope
 
-Player/transcodificador/BitTorrent próprios; garantia de torrent sem seeds; acesso remoto; redistribuição pública de mídia; serviços de cache pagos obrigatórios; streaming parcial; compra de equipamento antes de medição.
+Player/transcodificador/BitTorrent pr?prios; streaming parcial; downloader de DRM/YouTube/externalUrl/manifest adaptativo; captura de senha Stremio; herdar automaticamente addons/segredos da conta; acesso externo obrigat?rio; garantir conte?do raro dispon?vel.
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |---|---|---|
+| STRE-01 | 1 | Pending |
+| STRE-02 | 1 | Pending |
 | PLAY-01 | 1 | Pending |
 | PLAY-02 | 1 | Pending |
-| WISH-01 | 2 | Pending |
-| WISH-02 | 2 | Pending |
-| WISH-03 | 2 | Pending |
+| ADDN-01 | 2 | Pending |
+| ADDN-02 | 2 | Pending |
 | CONF-01 | 2 | Pending |
+| WISH-01 | 3 | Pending |
+| WISH-02 | 3 | Pending |
+| WISH-03 | 3 | Pending |
+| SRCE-01 | 3 | Pending |
+| SRCE-02 | 3 | Pending |
 | DOWN-01 | 3 | Pending |
 | DOWN-02 | 3 | Pending |
 | DOWN-03 | 3 | Pending |
 | DOWN-04 | 3 | Pending |
-| LIBR-01 | 4 | Pending |
-| LIBR-02 | 4 | Pending |
-| DISK-01 | 4 | Pending |
-| DISK-02 | 4 | Pending |
-| STRE-01 | 5 | Pending |
-| STRE-02 | 5 | Pending |
+| AUTO-01 | 4 | Pending |
+| AUTO-02 | 4 | Pending |
+| AUTO-03 | 4 | Pending |
+| AUTO-04 | 4 | Pending |
+| LIBR-01 | 5 | Pending |
+| LIBR-02 | 5 | Pending |
+| DISK-01 | 5 | Pending |
+| DISK-02 | 5 | Pending |
 | DIST-01 | 6 | Pending |
 | DIST-02 | 6 | Pending |
 | DIST-03 | 6 | Pending |
 
-**Coverage:** 19 requisitos v1, 19 mapeados, 0 sem fase. Critérios de Stremio são entregas de investigação; não contabilizar como recurso funcional implementado.
-
----
-*Last updated: 2026-11-15 after initial definition*
+**Coverage:** 27 requisitos v1, todos mapeados uma vez. Fase 2 usa importa??o manual m?nima; fase 3 inclui publica??o m?nima at?mica; fase 5 endurece publica??o/quota j? necess?rias ao fluxo.

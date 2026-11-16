@@ -16,14 +16,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-15)
 
 **Core value:** Assistir título preparado no PC pela LAN sem depender de seeders durante a sessão.
-**Current focus:** Phase 1 — Provar 4K local na Google TV.
+**Current focus:** Phase 1 — Provar addon e eventos na TCL C6K.
 
 ## Current Position
 
-Phase: 1 of 6 (Provar 4K local na Google TV)
+Phase: 1 of 6 (Provar addon e eventos na TCL C6K)
 Plan: 0 of TBD in current phase
 Status: Ready to plan
-Last activity: 2026-11-15 — pesquisa, requisitos e roadmap criados; nenhuma implementação iniciada.
+Last activity: 2026-11-15 — revisão Stremio principal, design detalhado, 27 requisitos e roadmap atualizado; nenhuma implementação iniciada.
 
 Progress: 0%
 
@@ -36,21 +36,23 @@ Total plans completed: 0. Sem métricas de execução disponíveis.
 ### Decisions
 
 - Usuário pediu elaboração durante ausência: investigação inline e premissas revisáveis, sem entrevista bloqueante.
-- Base recomendada: Jellyfin Windows + qBittorrent e arquivos completos; .NET 10 LTS para orquestrador.
-- Lista própria no MVP; addon e sincronização da lista Stremio são capacidades independentes e ainda não comprovadas.
+- Usuário escolheu addon Stremio principal; host .NET 10 LTS serve mídia, qBittorrent baixa e Jellyfin fica opcional.
+- TV confirmada: TCL C6K Android TV 14, Stremio atual sem build exata. Manter fonte manual e addon configurável.
+- Eventos player/library têm documentação e código públicos; prova na TV vem primeiro. Fallback por consumo HTTP só cobre mídia servida pelo Casa4K.
+- Janela padrão proposta de dois episódios. Evento não informa origem da mídia; resolvedor de fontes separado.
 - Execução por usuário/início no login proposta; sem exigência presumida de serviço antes do login.
 - Esta sessão termina no planejamento autorizado; não instalar componentes nem avançar automaticamente para implementação.
 
 ### Pending Todos
 
-Confirmar sistema/hardware do PC, TV, espaço, rede, onde deve estar a lista e exigência de Stremio exclusivo quando usuário voltar.
+Confirmar sistema/hardware do PC, espaço/rede, build/player Stremio e provedor de fontes específico. Planejar prova de compatibilidade da fase 1.
 
 ### Blockers/Concerns
 
-Nenhum bloqueio para planejar. Testes físicos de TV/Wi-Fi exigem ambiente do usuário; documentação consultada não comprova leitura da lista pessoal Stremio. Não reportar essas validações como realizadas.
+Nenhum bloqueio para planejamento. Testes físicos exigem ambiente do usuário; não há evidência da versão mínima Android TV para eventos. Eventos ao vivo não importam biblioteca/histórico anterior. Nenhuma validação física realizada.
 
 ## Session Continuity
 
 Last session: 2026-11-15
-Stopped at: Inicialização completa; próximo comando `$gsd-plan-phase 1` ou `$gsd-discuss-phase 1`.
+Stopped at: Pesquisa e revisão de escopo completas; próximo comando `$gsd-plan-phase 1`. Design em .planning/STREMIO-DESIGN.md e protocolo físico em phases/01-stremio-compatibility/01-VALIDATION.md.
 Resume file: None
