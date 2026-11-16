@@ -204,26 +204,40 @@ app.MapPost("/admin/api/network", (NetworkSettings input) =>
     }
     return Results.Ok(new { manifestUrl = ManifestUrl() });
 });
-app.MapPost("/admin/api/library-root", (LibrarySettings input) =>
+app.MapPost("/admin/api/library-root", async (LibrarySettings input, CancellationToken ct) =>
 {
+    await downloader.Gate.WaitAsync(ct);
+    try
+    {
     lock (libraryGate)
     {
         if (Environment.GetEnvironmentVariable("C4K_MEDIA_ROOT") is not null)
             return Results.Conflict(new { error = "Pasta definida no ambiente. Remova C4K_MEDIA_ROOT antes de alterar pelo painel." });
-        if (!repository.CanChangeRoot()) return Results.Conflict(new { error = "A biblioteca precisa estar vazia e sem importações em andamento. Esta ação não move arquivos existentes." });
-        if (string.IsNullOrWhiteSpace(input.Root) || !Path.IsPathFullyQualified(input.Root) || input.Root.StartsWith(@"\\", StringComparison.Ordinal) || input.Root[2..].Contains(':'))
-            return Results.BadRequest(new { error = "Informe uma pasta local absoluta, sem links ou caminho de rede." });
-        var root = Path.GetFullPath(input.Root);
-        if (Path.TrimEndingDirectorySeparator(root).Length <= Path.TrimEndingDirectorySeparator(Path.GetPathRoot(root)!).Length)
-            return Results.BadRequest(new { error = "Escolha uma pasta, não a raiz do disco." });
-        for (var current = root; current is not null; current = Path.GetDirectoryName(current))
-            if ((Directory.Exists(current) || File.Exists(current)) && (File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
-                return Results.BadRequest(new { error = "Não use links simbólicos ou junctions." });
+        var root = LocalDirectory.Validate(input.Root);
+        if (!string.Equals(root, Path.TrimEndingDirectorySeparator(files.Root), StringComparison.OrdinalIgnoreCase))
+        {
+            if (repository.Imports().Any(j => j.State is "Queued" or "Importing") ||
+                repository.Downloads().Any(j => j.State is not ("Ready" or "Removed" or "Cancelled")))
+                return Results.Conflict(new { error = "Conclua ou cancele as tarefas pendentes antes de alterar a pasta de completos." });
+            var destination = new MediaFiles(root);
+            foreach (var item in repository.Media())
+            {
+                var target = destination.Resolve(item.FileName);
+                var previous = files.Resolve(item.FileName);
+                if (target is null || previous is not null && new FileInfo(previous).Length != new FileInfo(target).Length)
+                    return Results.Conflict(new { error = "Coloque todos os vídeos e legendas cadastrados na nova pasta, mantendo os caminhos relativos, antes de salvar." });
+                var subtitle = repository.Subtitle(item.Id);
+                if (subtitle is not null && destination.ResolveSubtitle(subtitle.FileName) is null)
+                    return Results.Conflict(new { error = "Copie também as legendas cadastradas para a nova pasta." });
+            }
+        }
         Directory.CreateDirectory(root);
         File.WriteAllText(libraryPath + ".tmp", JsonSerializer.Serialize(new LibrarySettings(root)));
         File.Move(libraryPath + ".tmp", libraryPath, overwrite: true); files.SetRoot(root);
         return Results.Ok(new { mediaRoot = files.Root });
     }
+    }
+    finally { downloader.Gate.Release(); }
 });
 app.MapPost("/admin/api/media", (RegisterMedia input) =>
 {

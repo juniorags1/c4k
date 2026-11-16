@@ -116,6 +116,20 @@ try {
     Stop-Process -Id $appProcess.Id; $appProcess.WaitForExit(); $appProcess = Start-App; Wait-App
     $state = (Request 'GET' "$admin/admin/api/status" $null $auth).Body | ConvertFrom-Json
     Check ($state.events.Count -eq 2 -and $state.media.Count -eq 1 -and $state.manifestUrl -eq $status.manifestUrl) 'Estado e pareamento sobrevivem ao reinício'
+    # Troca real de raiz com dados isolados, sem override de ambiente.
+    Stop-Process -Id $appProcess.Id; $appProcess.WaitForExit()
+    [Environment]::SetEnvironmentVariable('C4K_MEDIA_ROOT', $null)
+    [IO.File]::WriteAllText((Join-Path $runDir 'library.json'), (@{Root=$mediaDir} | ConvertTo-Json))
+    $appProcess=Start-App; Wait-App
+    $otherRoot=Join-Path $runDir 'other-completed'
+    Check ((Request 'POST' "$admin/admin/api/library-root" @{root=$otherRoot} $auth).Status -eq 409) 'Troca recusa destino sem v?deos cadastrados'
+    New-Item -ItemType Directory -Path $otherRoot -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $mediaDir 'sample.mp4') -Destination $otherRoot
+    Check ((Request 'POST' "$admin/admin/api/library-root" @{root=$otherRoot} $auth).Status -eq 200) 'Troca aceita biblioteca existente com arquivo no destino'
+    Stop-Process -Id $appProcess.Id; $appProcess.WaitForExit(); $appProcess=Start-App; Wait-App
+    $relocated=(Request 'GET' "$admin/admin/api/status" $null $auth).Body | ConvertFrom-Json
+    Check ($relocated.mediaRoot -eq $otherRoot -and $relocated.media.Count -eq 1 -and $relocated.manifestUrl -eq $status.manifestUrl) 'Pasta de completos persiste com biblioteca e manifest preservados'
+    Check ((Request 'POST' "$admin/admin/api/library-root" @{root=$mediaDir} $auth).Status -eq 200) 'Restaura pasta da fixture'
     . (Join-Path $PSScriptRoot 'Smoke-Automation-Checks.ps1')
     Write-Output "PASS: $script:checks HTTP checks. Data: $runDir"
 } finally {

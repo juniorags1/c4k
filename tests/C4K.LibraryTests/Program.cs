@@ -58,6 +58,18 @@ var automation = new AutomationSettings(automationDirectory);
 automation.Save(new(true, "https://torrentio.strem.fun/manifest.json", "http://127.0.0.1:8082", "admin", "fixture-secret"));
 Check(automation.Password == "fixture-secret" && !File.ReadAllText(Path.Combine(automationDirectory, "automation.json")).Contains("fixture-secret"), "Senha protegida com DPAPI");
 Check(!JsonSerializer.Serialize(automation.Public()).Contains("fixture-secret"), "Status não revela senha");
+var customNew = Path.Combine(directory, "custom-new");
+automation.Save(new(false, automation.Current.Provider, automation.Current.QbitUrl, "admin", null, customNew));
+Check(new AutomationSettings(automationDirectory).Current.NewDirectory == customNew && automation.Password == "fixture-secret", "Pasta de incompletos persiste sem perder credenciais");
+automation.Save(new(false, automation.Current.Provider, automation.Current.QbitUrl, "admin", null));
+Check(automation.Current.NewDirectory == customNew, "Cliente antigo preserva pasta personalizada");
+foreach (var invalid in new[] { "", "relative", @"\\server\media", Path.GetPathRoot(directory)! })
+{
+    var rejected = false;
+    try { automation.Save(new(false, automation.Current.Provider, automation.Current.QbitUrl, "admin", null, invalid)); }
+    catch (ArgumentException) { rejected = true; }
+    Check(rejected && automation.Current.NewDirectory == customNew, "Pasta inválida recusada sem alterar configuração");
+}
 var downloads = new Repository(automationDirectory);
 downloads.Record("library", "series", "tt1234567", "libraryAdd", null, null, null, true);
 downloads.Record("library", "series", "tt1234567", "libraryAdd", null, null, null, true);
@@ -82,7 +94,7 @@ using var client = new QbitClient("http://127.0.0.1:8082", handler);
 using var downloadWorker = new DownloadWorker(downloads, mediaFiles, automation);
 await downloadWorker.Process(queued, client, CancellationToken.None);
 var durable = downloads.Downloads().Single(j=>j.Id==queued.Id);
-Check(durable.Hash == hash && handler.Adds == 1 && handler.AddBody.Contains("downloadPath=C%3A%5Cmedia%5Cnew") && handler.AddBody.Contains("stopped=true"), "Magnet e caminhos enviados; hash salvo antes do retorno");
+Check(durable.Hash == hash && handler.Adds == 1 && handler.AddBody.Contains("downloadPath=" + Uri.EscapeDataString(customNew)) && handler.AddBody.Contains("stopped=true"), "Magnet usa pasta personalizada; hash salvo antes do retorno");
 await downloadWorker.Process(durable, client, CancellationToken.None);
 Check(handler.Adds == 1 && downloads.Downloads().Single(j=>j.Id==queued.Id).Selected, "Recuperação por hash não duplica torrent; seleciona vídeo");
 Check(handler.Commands.Any(c=>c.Contains("id=0") && c.Contains("priority=0")), "Desmarca outros arquivos do pacote");

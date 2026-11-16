@@ -51,3 +51,14 @@ Check ($library.items.Count -eq 4 -and $library.totalBytes -eq 512) 'Resumo dedu
 Check (($library.items | Where-Object videoId -eq 'tt12300742').sizeBytes -eq 256) 'Listagem informa tamanho do vídeo'
 $main=Request 'GET' "$admin/admin/"
 Check ($main.Body.Contains('href="/list"') -and !$main.Body.Contains('id="library"') -and !$main.Body.Contains('id="local"')) 'Página principal aponta para gestão separada'
+
+$config.qbitUrl='http://127.0.0.1:8082'
+$config.newDirectory=Join-Path $runDir 'custom-incomplete'
+Check ((Request 'POST' "$admin/admin/api/automation" $config $auth).Status -eq 200) 'Pasta de incompletos configur?vel pela API'
+Stop-Process -Id $appProcess.Id; $appProcess.WaitForExit(); $appProcess=Start-App; Wait-App
+$customState=(Request 'GET' "$admin/admin/api/status" $null $auth).Body | ConvertFrom-Json
+Check ($customState.automation.newDirectory -eq $config.newDirectory) 'Pasta de incompletos persiste ap?s rein?cio'
+$config.newDirectory='relative'
+Check ((Request 'POST' "$admin/admin/api/automation" $config $auth).Status -eq 400) 'Pasta de incompletos relativa recusada'
+Check ((Request 'POST' "$admin/admin/api/library-root" @{root=$otherRoot} $auth).Status -eq 409) 'Troca de completos bloqueada com download pendente'
+Check ($main.Body.Contains('id="newDirectory"') -and $main.Body.Contains('id="completedDirectory"')) 'Painel exp?e ambas as pastas'

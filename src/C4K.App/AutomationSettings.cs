@@ -8,7 +8,8 @@ namespace C4K;
 public sealed record AutomationOptions(bool Enabled = false, string Provider = "https://torrentio.strem.fun/manifest.json",
     string QbitUrl = "http://127.0.0.1:8082", string Username = "admin", string PasswordProtected = "",
     string NewDirectory = @"C:\media\new");
-public sealed record AutomationInput(bool Enabled, string Provider, string QbitUrl, string Username, string? Password);
+public sealed record AutomationInput(bool Enabled, string Provider, string QbitUrl, string Username, string? Password,
+    string? NewDirectory = null);
 
 public sealed class AutomationSettings(string directory)
 {
@@ -27,7 +28,9 @@ public sealed class AutomationSettings(string directory)
             !p.AbsolutePath.EndsWith("/manifest.json", StringComparison.Ordinal) || p.UserInfo != "" || p.Query != "" || p.Fragment != "")
             throw new ArgumentException("Manifest inválido.");
         if (input.Username.Length > 200 || input.Password?.Length > 1000) throw new ArgumentException();
-        var next = Current with { Enabled = input.Enabled, Provider = input.Provider, QbitUrl = q.GetLeftPart(UriPartial.Authority),
+        var newDirectory = input.NewDirectory is null ? Current.NewDirectory : LocalDirectory.Validate(input.NewDirectory);
+        Directory.CreateDirectory(newDirectory);
+        var next = Current with { Enabled = input.Enabled, Provider = input.Provider, QbitUrl = q.GetLeftPart(UriPartial.Authority), NewDirectory = newDirectory,
             Username = input.Username, PasswordProtected = string.IsNullOrEmpty(input.Password) ? Current.PasswordProtected : Protect(input.Password, false) };
         File.WriteAllText(path + ".tmp", JsonSerializer.Serialize(next)); File.Move(path + ".tmp", path, true); Current = next;
     }
