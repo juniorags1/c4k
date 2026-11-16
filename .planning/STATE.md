@@ -1,6 +1,12 @@
 ---
-gsd_state_version: '1.0'
+gsd_state_version: "1.0"
+current_phase: 1
+current_phase_name: Provar addon e eventos na TCL C6K
 status: planning
+last_updated: "2026-11-16T01:16:45.190Z"
+last_activity: 2026-11-15
+last_activity_desc: revisão Stremio principal, design detalhado, 27 requisitos e roadmap atualizado; nenhuma implementação iniciada.
+state_head: 7d1d9a0941c9c1926c6afd25d91ab50b923bbbcf
 progress:
   total_phases: 6
   completed_phases: 0
@@ -25,7 +31,7 @@ Plan: 0 of TBD in current phase
 Status: Ready to plan
 Last activity: 2026-11-15 — revisão Stremio principal, design detalhado, 27 requisitos e roadmap atualizado; nenhuma implementação iniciada.
 
-Progress: 0%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -50,6 +56,12 @@ Confirmar sistema/hardware do PC, espaço/rede, build/player Stremio e provedor 
 ### Blockers/Concerns
 
 Nenhum bloqueio para planejamento. Testes físicos exigem ambiente do usuário; não há evidência da versão mínima Android TV para eventos. Eventos ao vivo não importam biblioteca/histórico anterior. Nenhuma validação física realizada.
+
+## Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|---|---|---|---|
+| 261115-unh | Investigar e planejar addon Stremio com pre-download de episodios | 2026-11-15 | 7d1d9a0 | [261115-unh-investigar-e-planejar-addon-stremio-com-](./quick/261115-unh-investigar-e-planejar-addon-stremio-com-/) |
 
 ## Session Continuity
 
