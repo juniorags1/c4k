@@ -1,11 +1,13 @@
 ---
-status: awaiting_client_retest
+status: resolved
 trigger: Failed to fetch ao colar manifest na instalação do addon no Stremio do PC
 created: 2026-11-16
 updated: 2026-11-16
 ---
 
 # Diagnóstico inline: instalação do manifest
+
+Desfecho confirmado pelo usuário: addon instalado no PC pelo endereço loopback e teste bem-sucedido na TV pelo endereço LAN. Manter tratamento específico por plataforma; não significa que o worker HTTPS do PC passou a permitir HTTP em IP privado. O painel 0.2 apresenta os dois endereços separadamente.
 
 ## Sintomas
 

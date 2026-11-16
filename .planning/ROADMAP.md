@@ -2,7 +2,7 @@
 
 ## Overview
 
-Milestone v1: PC prepara próximos episódios; Stremio da TCL C6K Android TV 14 reproduz arquivos completos pela LAN. Revisão autorizada em 2026-11-15 substitui roadmap inicial de servidor de mídia. Seis fases, nenhuma executada. Design: [STREMIO-DESIGN.md](STREMIO-DESIGN.md).
+Milestone v1: PC prepara próximos episódios; Stremio da TCL C6K Android TV 14 reproduz arquivos completos pela LAN. Revisão autorizada em 2026-11-15 substitui roadmap inicial de servidor de mídia. Seis fases; baseline na TV validado e biblioteca local implementada, com UAT detalhado pendente. Design: [STREMIO-DESIGN.md](STREMIO-DESIGN.md).
 
 ## Phases
 
@@ -38,7 +38,7 @@ Milestone v1: PC prepara próximos episódios; Stremio da TCL C6K Android TV 14 
 2. Catálogo/fonte usam IDs canônicos e apenas Ready, com token de mídia separado do admin.
 3. Verificar Range/HEAD/416, seek, revogação e rejeição de caminho fora da raiz sem carregar vídeo inteiro na RAM.
 4. Testar legendas e continuidade bingeGroup no cliente real sem prometer autoplay universal.
-**Plans:** To be planned.
+**Plans:** 02-01-PLAN.md implementado; 02-VERIFICATION.md registra testes e UAT pendente.
 
 ### Phase 3: Preparar episódios a partir de fontes
 **Goal:** Escolher fonte manual ou provedor e receber episódio completo no Stremio.
@@ -97,7 +97,7 @@ Milestone v1: PC prepara próximos episódios; Stremio da TCL C6K Android TV 14 
 | Phase | Plans Complete | Status | Completed |
 |---|---|---|---|
 | 1. Provar addon e eventos na TCL C6K | 0/1 | Awaiting TV verification | - |
-| 2. Assistir arquivos prontos pelo C4K | 0/TBD | Not started | - |
+| 2. Assistir arquivos prontos pelo C4K | 1/1 | Implemented; UAT pending | - |
 | 3. Preparar episódios a partir de fontes | 0/TBD | Not started | - |
 | 4. Antecipar próximos episódios | 0/TBD | Not started | - |
 | 5. Proteger biblioteca e disco | 0/TBD | Not started | - |

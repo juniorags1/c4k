@@ -46,7 +46,7 @@ Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou
 - **Rede:** desempenho precisa ser medido entre PC e TV; nenhuma promessa universal de ausência de travamentos.
 - **Custo:** priorizar software gratuito e equipamento existente; disco e rede dimensionados após medição.
 - **Origem:** arquivos locais, URLs e torrents para os quais o usuário possua autorização de acesso; não incluir credenciais ou fontes reais no repositório.
-- **Escopo atual:** usuário autorizou iniciar implementação em 2026-11-16. Fase 1 entrega ferramenta de prova; conclusão exige evidência física da TV.
+- **Escopo atual:** usuário confirmou reprodução básica na TCL e autorizou continuar. Biblioteca 0.2 entrega importação, legendas e configuração local; duração/autoplay/eventos detalhados continuam como UAT pendente. Downloads e antecipação seguem nas fases 3/4.
 
 ## Key Decisions
 

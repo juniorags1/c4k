@@ -19,7 +19,7 @@ Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou
 - **Rede:** desempenho precisa ser medido entre PC e TV; nenhuma promessa universal de ausência de travamentos.
 - **Custo:** priorizar software gratuito e equipamento existente; disco e rede dimensionados após medição.
 - **Origem:** arquivos locais, URLs e torrents para os quais o usuário possua autorização de acesso; não incluir credenciais ou fontes reais no repositório.
-- **Escopo atual:** implementação da prova de compatibilidade da fase 1 autorizada em 2026-11-16. Testes físicos na TV permanecem obrigatórios antes de concluir a fase.
+- **Escopo atual:** usuário autorizou continuar após reprodução básica validada na TCL. Biblioteca local 0.2 implementada; UAT de legendas/autoplay e critérios detalhados da fase 1 seguem pendentes.
 
 <!-- GSD:project-end -->
 
@@ -30,8 +30,8 @@ Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou
 | Componente | Escolha | Confiança |
 |---|---|---|
 | Host/addon/mídia/painel | C# e ASP.NET Core .NET 10 LTS | Alta documental |
-| UI | Razor Pages e JS pequeno | Alta |
-| Persistência | SQLite e EF Core 10 | Alta; versão patch fixada ao implementar |
+| UI | HTML/CSS/JS servido pelo ASP.NET Core | Implementado |
+| Persistência | SQLite e Microsoft.Data.Sqlite 10.0.15 | Implementado; migrações aditivas |
 | Jobs | BackgroundService e intenções/inbox persistidos | Proposta a testar |
 | Download | qBittorrent nativo por Web API em loopback | Alta documental; versão negociada |
 | TV | Stremio na TCL C6K Android TV 14 | Reprodução LAN e eventos pendentes |
@@ -49,7 +49,7 @@ Conventions not yet established. Will populate as patterns emerge during develop
 
 ## Architecture
 
-Architecture: [.planning/STREMIO-DESIGN.md](.planning/STREMIO-DESIGN.md). The compatibility host is implemented in src/C4K.App; scripts/Smoke-Test.ps1 verifies HTTP contracts. Downloading and episode preloading are not implemented yet.
+Architecture: [.planning/STREMIO-DESIGN.md](.planning/STREMIO-DESIGN.md). The host in src/C4K.App implements local library imports, SQLite jobs and sidecar subtitles. Run scripts/Smoke-Test.ps1 for HTTP contracts and tests/C4K.LibraryTests for migration/recovery. Downloading and episode preloading are not implemented yet.
 <!-- GSD:architecture-end -->
 
 <!-- GSD:skills-start source:skills/ -->

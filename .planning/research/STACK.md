@@ -3,8 +3,8 @@
 | Componente | Escolha | Confiança |
 |---|---|---|
 | Host/addon/mídia/painel | C# e ASP.NET Core .NET 10 LTS | Alta documental |
-| UI | Razor Pages e JS pequeno | Alta |
-| Persistência | SQLite e EF Core 10 | Alta; versão patch fixada ao implementar |
+| UI | HTML/CSS/JS servido pelo ASP.NET Core | Implementado na biblioteca 0.2 |
+| Persistência | SQLite e Microsoft.Data.Sqlite 10.0.15 | Implementado; migrações aditivas verificadas |
 | Jobs | BackgroundService e intenções/inbox persistidos | Proposta a testar |
 | Download | qBittorrent nativo por Web API em loopback | Alta documental; versão negociada |
 | TV | Stremio na TCL C6K Android TV 14 | Reprodução LAN e eventos pendentes |

@@ -14,9 +14,9 @@ Alvo confirmado: TCL C6K Android TV 14, Stremio atual sem build numérica. Usuá
 - [ ] **STRE-02**: Usuário pode receber matriz real dos eventos player/library do cliente alvo e modo de atividade comprovado, sem presumir suporte por documentação.
 - [ ] **PLAY-01**: Usuário pode assistir arquivo 4K completo via PC no Stremio, registrando codec, áudio, HDR quando aplicável e legendas habituais.
 - [ ] **PLAY-02**: Usuário pode validar diagnóstico PC–TV, sessão de 60 minutos sem rebuffer após início, três seeks em até cinco segundos e dependência WAN separada da leitura local.
-- [ ] **ADDN-01**: Usuário pode encontrar arquivos Ready como fonte C4K nos IDs canônicos e catálogo de prontos, sem stream parcial ou fictício.
-- [ ] **ADDN-02**: Usuário pode fazer seek por HTTP Range autenticado; HEAD, intervalo inválido e token revogado têm comportamento correto.
-- [ ] **CONF-01**: Usuário pode configurar e parear por painel local autenticado, sem edição de código ou segredos em logs.
+- [x] **ADDN-01**: Usuário pode encontrar arquivos Ready como fonte C4K nos IDs canônicos e catálogo de prontos, sem stream parcial ou fictício.
+- [x] **ADDN-02**: Usuário pode fazer seek por HTTP Range autenticado; HEAD, intervalo inválido e token revogado têm comportamento correto.
+- [x] **CONF-01**: Usuário pode configurar e parear por painel local autenticado, sem edição de código ou segredos em logs.
 
 ### Intenção e fontes
 
@@ -72,9 +72,9 @@ Player/transcodificador/BitTorrent próprios; streaming parcial; downloader de D
 | STRE-02 | 1 | Pending |
 | PLAY-01 | 1 | Pending |
 | PLAY-02 | 1 | Pending |
-| ADDN-01 | 2 | Pending |
-| ADDN-02 | 2 | Pending |
-| CONF-01 | 2 | Pending |
+| ADDN-01 | 2 | Implemented |
+| ADDN-02 | 2 | Implemented |
+| CONF-01 | 2 | Implemented |
 | WISH-01 | 3 | Pending |
 | WISH-02 | 3 | Pending |
 | WISH-03 | 3 | Pending |
