@@ -14,6 +14,8 @@ Abra **http://127.0.0.1:48241/admin/**. Coloque um arquivo completo na pasta ind
 
 Copie o manifest privado pelo painel e instale diretamente no Stremio. No catálogo Casa4K, abra a amostra cadastrada. Para associar arquivo a uma obra existente, use o IMDb correto; episódios usam o ID da série seguido de `:temporada:episódio`. Primeiro teste filme com ID local `c4k:amostra` para separar a prova de rede da associação de metadados.
 
+Para facilitar digitação na TV, o painel fornece `http://IP-DO-PC:48240/CODIGO/manifest.json`, com código de dez caracteres. O alias atende manifest e recursos diretamente, sem redirecionar. O endereço longo anterior continua funcionando. Esse código é uma chave para teste doméstico na LAN, sem exposição à internet; trocar secrets.json também revoga o endereço curto. Permissões de rede local do navegador continuam necessárias.
+
 PC e TV devem estar na mesma LAN e o PC precisa permanecer ligado. O host escuta na porta **48240** para addon/mídia; painel e dados administrativos só na porta loopback **48241**. Se o Windows solicitar liberação de rede, permita apenas rede privada. O programa não altera firewall nem roteador. Não encaminhe portas para a internet.
 
 O endereço LAN é detectado automaticamente por interface ativa com gateway. Se houver VPN ou endereço incorreto, configure antes de iniciar:

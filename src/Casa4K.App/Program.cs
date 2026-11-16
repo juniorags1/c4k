@@ -19,7 +19,9 @@ var adminPort = int.Parse(Environment.GetEnvironmentVariable("CASA4K_ADMIN_PORT"
 if (addonPort == adminPort || addonPort is < 1024 or > 65535 || adminPort is < 1024 or > 65535)
     throw new InvalidOperationException("Portas devem ser distintas e estar entre 1024 e 65535.");
 var publicUrl = AppSettings.PublicUrl(addonPort);
-var manifestUrl = $"{publicUrl}/a/{settings.AddonToken}/manifest.json";
+// Alias curto para digitação no controle da TV. Restrito ao uso doméstico em LAN.
+var shortAddonCode = settings.AddonToken[..10];
+var manifestUrl = $"{publicUrl}/{shortAddonCode}/manifest.json";
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(addonPort);
@@ -35,6 +37,9 @@ builder.Services.AddRateLimiter(options =>
 var app = builder.Build();
 app.Use(async (context, next) =>
 {
+    // Reescrita interna, sem redirect: recursos continuam sob a base curta no cliente.
+    if (context.Request.Path.StartsWithSegments($"/{shortAddonCode}", out var remainder))
+        context.Request.Path = $"/a/{settings.AddonToken}{remainder}";
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
     context.Response.Headers.CacheControl = "no-store";
     var path = context.Request.Path;
@@ -70,6 +75,7 @@ app.Use(async (context, next) =>
         if (!context.Response.HasStarted) { context.Response.StatusCode = 500; await context.Response.WriteAsJsonAsync(new { error = "Falha local. Verifique disco e configuração." }); }
     }
 });
+app.UseRouting(); // Resolver a rota após expandir o alias curto.
 app.UseRateLimiter();
 app.MapGet("/", () => Results.Redirect("/admin/"));
 app.MapGet("/admin/", () => Results.Content(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Panel.html")), "text/html; charset=utf-8"));

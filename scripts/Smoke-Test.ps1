@@ -73,6 +73,11 @@ try {
     Check ($manifest.Headers.Contains('Access-Control-Allow-Origin')) 'CORS no addon'
     Check ((Request 'GET' "$addon/a/invalid/manifest.json").Status -eq 404) 'Token addon inválido'
     $prefix = $status.manifestUrl.Replace('/manifest.json','')
+    $manifestUri = [Uri]$status.manifestUrl
+    Check ($manifestUri.AbsolutePath -match '^/[a-f0-9]{10}/manifest\.json$') 'Manifest tem código curto para TV'
+    Check ((Request 'GET' "$addon/0000000000/manifest.json").Status -eq 404) 'Alias incorreto recusado'
+    $privateSettings = Get-Content -LiteralPath (Join-Path $runDir 'secrets.json') -Raw | ConvertFrom-Json
+    Check ((Request 'GET' "$addon/a/$($privateSettings.AddonToken)/manifest.json").Status -eq 200) 'Manifest longo anterior continua funcionando'
     $item = @{ type='movie'; metaId='c4k:sample'; videoId='c4k:sample'; title='Amostra de diagnóstico'; fileName='sample.mp4'; season=$null; episode=$null }
     Check ((Request 'POST' "$admin/admin/api/media" $item $auth).Status -eq 200) 'Cadastro persistido'
     $item.fileName = '../outside.mp4'
