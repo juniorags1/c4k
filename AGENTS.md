@@ -19,7 +19,7 @@ Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou
 - **Rede:** desempenho precisa ser medido entre PC e TV; nenhuma promessa universal de ausência de travamentos.
 - **Custo:** priorizar software gratuito e equipamento existente; disco e rede dimensionados após medição.
 - **Origem:** arquivos locais, URLs e torrents para os quais o usuário possua autorização de acesso; não incluir credenciais ou fontes reais no repositório.
-- **Escopo atual:** usuário autorizou continuar após reprodução básica validada na TCL. Biblioteca local 0.2 implementada; UAT de legendas/autoplay e critérios detalhados da fase 1 seguem pendentes.
+- **Escopo atual:** automação 0.3 publicada com Torrentio e qBittorrent 5.3.0 na porta 8082. Incompletos em C:\media\new, catálogo serve diretamente C:\media\done sem cópias. Remover pelo painel apaga vídeo físico mediante confirmação. Credenciais e UAT real de libraryAdd/download pendentes; antecipação por reprodução segue na fase 4.
 
 <!-- GSD:project-end -->
 
@@ -49,7 +49,7 @@ Conventions not yet established. Will populate as patterns emerge during develop
 
 ## Architecture
 
-Architecture: [.planning/STREMIO-DESIGN.md](.planning/STREMIO-DESIGN.md). The host in src/C4K.App implements local library imports, SQLite jobs and sidecar subtitles. Run scripts/Smoke-Test.ps1 for HTTP contracts and tests/C4K.LibraryTests for migration/recovery. Downloading and episode preloading are not implemented yet.
+Architecture: [.planning/STREMIO-DESIGN.md](.planning/STREMIO-DESIGN.md). The host in src/C4K.App implements direct completed-file registration, persistent download intents, Torrentio selection and local qBittorrent API control. ImportWorker is legacy test compatibility only and is not registered in the host. Run scripts/Smoke-Test.ps1 for HTTP contracts and tests/C4K.LibraryTests for migration, automation and fixture deletion. Playback-triggered episode preloading is not implemented yet.
 <!-- GSD:architecture-end -->
 
 <!-- GSD:skills-start source:skills/ -->

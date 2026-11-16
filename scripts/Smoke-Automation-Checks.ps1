@@ -1,4 +1,4 @@
-# Executado pelo Smoke-Test.ps1 com processo e pastas isolados.
+﻿# Executado pelo Smoke-Test.ps1 com processo e pastas isolados.
 $config = @{ enabled=$false; provider='https://torrentio.strem.fun/manifest.json'; qbitUrl='http://127.0.0.1:8082'; username='fixture'; password='test-only-secret' }
 Check ((Request 'POST' "$admin/admin/api/automation" $config $auth).Status -eq 200) 'Configuração de automação salva'
 $automationStatus = Request 'GET' "$admin/admin/api/status" $null $auth
