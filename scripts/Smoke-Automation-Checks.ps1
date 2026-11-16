@@ -40,3 +40,14 @@ $watchedExtra = [Uri]::EscapeDataString('action=watched&videoId=tt1234567:1:2')
 Check ((Request 'GET' "$posterPrefix/library/series/tt1234567/$watchedExtra.json").Status -eq 200) 'Evento watched aceita episódio específico'
 $watchedStatus = (Request 'GET' "$admin/admin/api/status" $null $auth).Body | ConvertFrom-Json
 Check ($watchedStatus.events[0].changedVideos -eq 'tt1234567:1:2' -and $watchedStatus.watchedPlans.Count -eq 0) 'Evento preserva episódio e respeita automação desativada'
+$listPage=Request 'GET' "$admin/list"
+Check ($listPage.Status -eq 200 -and $listPage.Body.Contains('Biblioteca C4K')) 'Tela dedicada /list na porta administrativa'
+Check ((Request 'GET' "$admin/list/").Status -eq 200) 'Tela /list aceita barra final'
+Check ((Request 'GET' "$addon/list").Status -eq 404) 'Tela de gestão não exposta na porta LAN'
+Check ((Request 'GET' "$admin/list" $null @{Host='invalid.example'}).Status -eq 404) 'Tela /list protege Host'
+Check ((Request 'GET' "$admin/admin/api/library").Status -eq 403) 'API de biblioteca exige header administrativo'
+$library=(Request 'GET' "$admin/admin/api/library" $null $auth).Body | ConvertFrom-Json
+Check ($library.items.Count -eq 4 -and $library.totalBytes -eq 512) 'Resumo deduplica caminhos e informa total dos arquivos'
+Check (($library.items | Where-Object videoId -eq 'tt12300742').sizeBytes -eq 256) 'Listagem informa tamanho do vídeo'
+$main=Request 'GET' "$admin/admin/"
+Check ($main.Body.Contains('href="/list"') -and !$main.Body.Contains('id="library"') -and !$main.Body.Contains('id="local"')) 'Página principal aponta para gestão separada'

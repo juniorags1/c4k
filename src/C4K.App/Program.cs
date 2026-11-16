@@ -58,7 +58,7 @@ app.Use(async (context, next) =>
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
     context.Response.Headers.CacheControl = "no-store";
     var path = context.Request.Path;
-    var admin = path.StartsWithSegments("/admin") || path == "/";
+    var admin = path.StartsWithSegments("/admin") || path.StartsWithSegments("/list") || path == "/";
     if (admin)
     {
         var host = context.Request.Host.Host;
@@ -94,6 +94,20 @@ app.UseRouting(); // Resolver a rota após expandir o alias curto.
 app.UseRateLimiter();
 app.MapGet("/", () => Results.Redirect("/admin/"));
 app.MapGet("/admin/", () => Results.Content(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "LibraryPanel.html")), "text/html; charset=utf-8"));
+app.MapGet("/list", () => Results.Content(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "LibraryList.html")), "text/html; charset=utf-8"));
+app.MapGet("/admin/api/library", () =>
+{
+    var items = repository.Media().Select(m =>
+    {
+        long? size = null;
+        try { var path = files.Resolve(m.FileName); if (path is not null) size = new FileInfo(path).Length; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+        return new { m.Id, m.Type, m.MetaId, m.VideoId, m.Title, m.FileName, m.Season, m.Episode,
+            sizeBytes = size, available = size is not null, poster = MediaNames.Poster(m.MetaId) };
+    }).ToArray();
+    return Results.Ok(new { mediaRoot = files.Root, items,
+        totalBytes = items.DistinctBy(m => m.FileName, StringComparer.OrdinalIgnoreCase).Sum(m => m.sizeBytes ?? 0) });
+});
 app.MapGet("/admin/api/status", () => new
 {
     manifestUrl = ManifestUrl(), desktopManifestUrl = DesktopManifestUrl(),
