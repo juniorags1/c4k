@@ -71,6 +71,8 @@ try {
     $manifest = Request 'GET' $status.manifestUrl
     Check ($manifest.Status -eq 200) 'Manifest privado'
     Check ($manifest.Headers.Contains('Access-Control-Allow-Origin')) 'CORS no addon'
+    $preflight = Request 'OPTIONS' $status.manifestUrl $null @{ Origin='https://web.stremio.com'; 'Access-Control-Request-Method'='GET'; 'Access-Control-Request-Headers'='content-type' }
+    Check ($preflight.Status -eq 204 -and ($preflight.Headers.GetValues('Access-Control-Allow-Headers') -join ',') -match '(?i)content-type') 'Preflight permite Content-Type para clientes JSON'
     Check ((Request 'GET' "$addon/a/invalid/manifest.json").Status -eq 404) 'Token addon inválido'
     $prefix = $status.manifestUrl.Replace('/manifest.json','')
     $manifestUri = [Uri]$status.manifestUrl

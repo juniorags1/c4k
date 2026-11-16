@@ -62,7 +62,7 @@ app.Use(async (context, next) =>
     {
         context.Response.Headers.AccessControlAllowOrigin = "*";
         context.Response.Headers.AccessControlAllowMethods = "GET, HEAD, OPTIONS";
-        context.Response.Headers.AccessControlAllowHeaders = "Range, If-Range";
+        context.Response.Headers.AccessControlAllowHeaders = "Content-Type, Range, If-Range";
         context.Response.Headers.AccessControlExposeHeaders = "Content-Length, Content-Range, Accept-Ranges";
         if(context.Request.Method == "OPTIONS") { context.Response.StatusCode = 204; return; }
     }

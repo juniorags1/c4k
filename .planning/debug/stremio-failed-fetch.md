@@ -20,6 +20,8 @@ Usuário confirmou erro ao colar manifest, não ao abrir vídeo ou botão. Esper
 
 ## Tratativa
 
+Atualização: reproduzida segunda falha independente no browser com LNA concedido: GET com Content-Type application/json era bloqueado pelo preflight, pois Access-Control-Allow-Headers não incluía Content-Type. Header permitido explicitamente e regressão adicionada. Não comprova que o app real usou esse header; corrige um caso real reproduzido do servidor. Ainda não foi observado o console do processo Stremio do usuário.
+
 Host devolve links de instalação que preservam URL HTTP na rota interna do Stremio, incluindo opção pelo navegador. Painel/README orientam concessão de rede local por site, sem desabilitar segurança global. Dois testes regressivos verificam roundtrip dos links. Nenhum header CORS pode substituir uma permissão de rede negada pelo navegador.
 
 ## Limite e próximo passo
