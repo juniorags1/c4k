@@ -14,7 +14,8 @@ public static class EpisodePlanner
         return parts.Length == 3 && int.TryParse(parts[1], out var s) && int.TryParse(parts[2], out var e) && s > 0 && e > 0 ? (s, e) : null;
     }
     public static bool ValidSeries(string id) => Regex.IsMatch(id, @"^tt\d{5,12}$", RegexOptions.CultureInvariant);
-    public static EpisodePlan Next(JsonElement root, string series, string anchor, DateTimeOffset now)
+    public static EpisodePlan First(JsonElement root, string series, DateTimeOffset now) => Next(root, series, null, now);
+    public static EpisodePlan Next(JsonElement root, string series, string? anchor, DateTimeOffset now)
     {
         if (!root.TryGetProperty("meta", out var meta) || !meta.TryGetProperty("id", out var identity) || identity.GetString() != series ||
             !meta.TryGetProperty("videos", out var videos) || videos.ValueKind != JsonValueKind.Array)
@@ -29,8 +30,8 @@ public static class EpisodePlanner
             entries.Add((id, position.Value.Season, position.Value.Episode, released));
         }
         var ordered = entries.DistinctBy(v => v.Id).OrderBy(v => v.Season).ThenBy(v => v.Episode).ToList();
-        var index = ordered.FindIndex(v => v.Id == anchor);
-        if (index < 0) throw new InvalidOperationException("Episódio assistido não consta na sequência conhecida; confira o ID. Especiais não iniciam antecipação automática.");
+        var index = anchor is null ? -1 : ordered.FindIndex(v => v.Id == anchor);
+        if (anchor is not null && index < 0) throw new InvalidOperationException("Episódio assistido não consta na sequência conhecida; confira o ID. Especiais não iniciam antecipação automática.");
         var next = ordered.Skip(index + 1).Take(2).ToArray();
         return new(next.TakeWhile(v => v.Released).Select(v => v.Id).ToArray(), next.Any(v => !v.Released));
     }

@@ -61,8 +61,8 @@ Check(!JsonSerializer.Serialize(automation.Public()).Contains("fixture-secret"),
 var downloads = new Repository(automationDirectory);
 downloads.Record("library", "series", "tt1234567", "libraryAdd", null, null, null, true);
 downloads.Record("library", "series", "tt1234567", "libraryAdd", null, null, null, true);
-Check(downloads.Downloads().Single().Request.VideoId == "tt1234567:1:1", "LibraryAdd persiste e deduplica S1E1");
-Check(new Repository(automationDirectory).Downloads().Count == 1, "Solicitação sobrevive reinício");
+Check(downloads.WatchedPlans().Single().FromBeginning && downloads.Downloads().Count==0, "LibraryAdd persiste e deduplica intenção dos primeiros episódios");
+Check(new Repository(automationDirectory).WatchedPlans().Single().FromBeginning, "Intenção inicial sobrevive reinício");
 var hash = new string('a', 40);
 using var result = JsonDocument.Parse(JsonSerializer.Serialize(new { streams = new[] {
     new { name="Torrentio\n1080p", title="👤 9999", infoHash=new string('b',40), fileIdx=0 },
@@ -145,6 +145,19 @@ using var episodeJson = JsonDocument.Parse(JsonSerializer.Serialize(new { meta =
     new { id="tt1234567:2:1", released="2021-01-01T00:00:00Z" },
     new { id="tt1234567:2:2", released="2030-01-01T00:00:00Z" } } } }));
 var episodePlan = EpisodePlanner.Next(episodeJson.RootElement,"tt1234567","tt1234567:1:1",now);
+var firstPlan=EpisodePlanner.First(episodeJson.RootElement,"tt1234567",now);
+Check(firstPlan.VideoIds.SequenceEqual(new[]{"tt1234567:1:1","tt1234567:1:2"}), "Biblioteca seleciona os dois primeiros episódios e ignora especiais");
+var initialDir=Path.Combine(directory,"library-initial");Directory.CreateDirectory(initialDir);var initialRepo=new Repository(initialDir);
+initialRepo.Record("library","series","tt1234567","libraryAdd",null,null,null,true);
+var initialObserved=initialRepo.WatchedPlans().Single();initialRepo.ApplyWatched(initialObserved,firstPlan);
+initialRepo.Record("library","series","tt1234567","libraryAdd",null,null,null,true);
+initialRepo.ApplyWatched(initialObserved,firstPlan);
+Check(initialRepo.Downloads().Count==2, "Adição repetida assegura só dois episódios sem duplicar");
+initialRepo.Record("library","series","tt1234567","watched",null,null,"tt1234567:1:2",true);
+initialRepo.Record("library","series","tt1234567","libraryAdd",null,null,null,true);
+Check(initialRepo.WatchedPlans().Single() is {FromBeginning:false,Anchor:"tt1234567:1:2"}, "Watched avança e nova adição não reinicia série");
+initialRepo.ApplyWatched(initialObserved,new(["tt1234567:9:1"],false));
+Check(initialRepo.Downloads().Count==2, "Resposta inicial atrasada não sobrescreve avanço watched");
 Check(episodePlan.VideoIds.SequenceEqual(new[]{"tt1234567:1:2","tt1234567:2:1"}), "Watched encontra dois sucessores incluindo próxima temporada");
 Check(EpisodePlanner.Next(episodeJson.RootElement,"tt1234567","tt1234567:2:1",now) is { WaitingForRelease:true,VideoIds.Length:0 }, "Próximo episódio futuro não é baixado");
 Check(EpisodePlanner.Next(episodeJson.RootElement,"tt1234567","tt1234567:2:2",now).VideoIds.Length==0, "Fim da lista não inventa episódios");
@@ -163,6 +176,8 @@ watchRepo.ApplyWatched(observed,new(["tt1234567:2:2"],false));
 Check(watchRepo.Downloads().Count==2, "Resposta atrasada de metadados não enfileira sob âncora antiga");
 watchRepo.Record("library","series","tt7654321","watched",null,null,null,true);
 Check(watchRepo.WatchedPlans().Single(p=>p.SeriesId=="tt7654321").State=="NeedsEpisode", "Série inteira sem episódio pede identificação");
+watchRepo.Record("library","series","tt7654321","libraryAdd",null,null,null,true);
+Check(watchRepo.WatchedPlans().Single(p=>p.SeriesId=="tt7654321").FromBeginning, "Adicionar série sem episódio conhecido prepara o início");
 var shared0=downloads.QueueDownload(new("series","tt7654321:1:1","Shared", "magnet:?xt=urn:btih:"+hash,0));
 var shared1=downloads.QueueDownload(new("series","tt7654321:1:2","Shared", "magnet:?xt=urn:btih:"+hash,1));
 downloads.SaveDownload(shared0=shared0 with { Hash=hash,FileIndex=0 });downloads.SaveDownload(shared1 with { Hash=hash,FileIndex=1 });

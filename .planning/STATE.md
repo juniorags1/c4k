@@ -42,6 +42,8 @@ Total plans completed: 1. Sem métricas de execução disponíveis.
 
 ### Decisions
 
+- libraryAdd de série agora prepara dois primeiros episódios regulares lançados, normalmente T01E01/T01E02. Plano persistente inicial pode ser substituído por watched explícito; repetição de adição não retrocede progresso conhecido. 54 testes de lógica e 53 HTTP aprovados; executável publicado preservando dados. Ver quick/20261116-library-primeiros-dois/.
+
 - 2026-11-16: usuário pediu antecipação a partir de Watched. Implementado evento persistente de episódio específico → dois sucessores canônicos já lançados, com mudança de temporada, dedupe e preservação de pacotes compartilhados. Reconsulta de lançamentos em 6h e falha de metadados em 10min. Sem evento específico não presume último visto. 49 testes de lógica, 53 HTTP e DOM Edge aprovados; UAT real watched pendente. Reprodução start permanece sem antecipação.
 
 - Erro de adição resolvido: API 5.3 devolve contadores JSON. Uma tarefa existente foi retomada por hash, sem duplicar, e entrou em downloading com progresso real. Nome Bugonia (2025) resolvido via Cinemeta e aplicado no painel/torrent; arquivos físicos preservados. Ver debug/qbittorrent-add-name.md.
@@ -75,6 +77,7 @@ Usuário confirmou reprodução básica na TCL. Duração, seek, áudio/legendas
 
 | # | Description | Date | Commit | Directory |
 |---|---|---|---|---|
+| 20261116-library-primeiros-dois | Baixar primeiros dois episódios ao adicionar série à biblioteca | 2026-11-16 | ver histórico Git | [library-primeiros-dois](./quick/20261116-library-primeiros-dois/) |
 | 20261116-watched-proximos-dois | Preparar próximos dois episódios ao marcar Watched | 2026-11-16 | ver histórico Git | [watched-proximos-dois](./quick/20261116-watched-proximos-dois/) |
 | 20261116-recadastro-filme | Substituir cadastro de teste por IMDb usando o mesmo vídeo em done | 2026-11-16 | ver histórico Git | [recadastro-filme](./quick/20261116-recadastro-filme/) |
 | 261115-unh | Investigar e planejar addon Stremio com pre-download de episodios | 2026-11-15 | 7d1d9a0 | [261115-unh-investigar-e-planejar-addon-stremio-com-](./quick/261115-unh-investigar-e-planejar-addon-stremio-com-/) |

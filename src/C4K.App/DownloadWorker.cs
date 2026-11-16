@@ -30,7 +30,7 @@ public sealed class DownloadWorker(Repository repository, MediaFiles files, Auto
                 {
                     if (settings.Current.Enabled && !ReferenceEquals(rejectedSettings, settings.Current))
                     {
-                        foreach (var plan in repository.WatchedPlans().Where(p => p.Anchor is not null && p.NextAttempt <= DateTimeOffset.UtcNow))
+                        foreach (var plan in repository.WatchedPlans().Where(p => (p.Anchor is not null || p.FromBeginning) && p.NextAttempt <= DateTimeOffset.UtcNow))
                         {
                             try
                             {
@@ -38,7 +38,8 @@ public sealed class DownloadWorker(Repository repository, MediaFiles files, Auto
                                 using var response = await sourceHttp.GetAsync($"https://v3-cinemeta.strem.io/meta/series/{plan.SeriesId}.json", timeout.Token);
                                 response.EnsureSuccessStatusCode();
                                 using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(timeout.Token));
-                                repository.ApplyWatched(plan, EpisodePlanner.Next(json.RootElement, plan.SeriesId, plan.Anchor!, DateTimeOffset.UtcNow));
+                                repository.ApplyWatched(plan, plan.FromBeginning ? EpisodePlanner.First(json.RootElement, plan.SeriesId, DateTimeOffset.UtcNow)
+                                    : EpisodePlanner.Next(json.RootElement, plan.SeriesId, plan.Anchor!, DateTimeOffset.UtcNow));
                             }
                             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { throw; }
                             catch (Exception e) { repository.ApplyWatched(plan, null, Friendly(e)); }

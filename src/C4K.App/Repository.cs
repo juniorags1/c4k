@@ -68,7 +68,10 @@ public sealed partial class Repository
         cmd.Parameters.AddWithValue("$d", (object?)duration ?? DBNull.Value); cmd.Parameters.AddWithValue("$videos", (object?)videos ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$at", DateTimeOffset.UtcNow.ToString("O")); cmd.ExecuteNonQuery();
         if (queueDownload && resource == "library" && action == "libraryAdd" && id.StartsWith("tt", StringComparison.Ordinal))
-            InsertDownload(db, transaction, NormalizeDownload(new(type, id)));
+        {
+            if (type == "series") ObserveSeriesAdded(db, transaction, id.Split(':')[0]);
+            else InsertDownload(db, transaction, NormalizeDownload(new(type, id)));
+        }
         if (queueDownload && resource == "library" && type == "series" && action == "watched")
             ObserveWatched(db, transaction, id.Split(':')[0], videos ?? (id.Contains(':') ? id : null));
         transaction.Commit();

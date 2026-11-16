@@ -3,7 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace C4K;
 
-public sealed record WatchedPlan(string SeriesId, string? Anchor, string State, string Message, DateTimeOffset NextAttempt);
+public sealed record WatchedPlan(string SeriesId, string? Anchor, string State, string Message, DateTimeOffset NextAttempt, bool FromBeginning = false);
 public sealed partial class Repository
 {
     private void InitializeWatched()
@@ -17,6 +17,21 @@ public sealed partial class Repository
         using var r = cmd.ExecuteReader(); var plans = new List<WatchedPlan>();
         while (r.Read()) plans.Add(JsonSerializer.Deserialize<WatchedPlan>(r.GetString(0))!); return plans;
     }
+    private static void ObserveSeriesAdded(SqliteConnection db, SqliteTransaction tx, string series)
+    {
+        if (!EpisodePlanner.ValidSeries(series)) return;
+        using var cmd = db.CreateCommand(); cmd.Transaction = tx;
+        cmd.CommandText = "SELECT body FROM watched_plans WHERE series_id=$id";
+        cmd.Parameters.AddWithValue("$id", series);
+        if (cmd.ExecuteScalar() is string previous)
+        {
+            var old = JsonSerializer.Deserialize<WatchedPlan>(previous)!;
+            if (old.Anchor is not null || old.FromBeginning) return;
+        }
+        var plan = new WatchedPlan(series, null, "Pending", "Buscando os dois primeiros episódios.", DateTimeOffset.MinValue, true);
+        cmd.CommandText = "INSERT INTO watched_plans(series_id,body) VALUES($id,$body) ON CONFLICT(series_id) DO UPDATE SET body=$body";
+        cmd.Parameters.AddWithValue("$body", JsonSerializer.Serialize(plan)); cmd.ExecuteNonQuery();
+    }
     private static void ObserveWatched(SqliteConnection db, SqliteTransaction tx, string series, string? videos)
     {
         if (!EpisodePlanner.ValidSeries(series)) return;
@@ -27,6 +42,7 @@ public sealed partial class Repository
         if (cmd.ExecuteScalar() is string body)
         {
             var old = JsonSerializer.Deserialize<WatchedPlan>(body)!;
+            if (old.FromBeginning && anchor is null) return;
             if (old.Anchor is not null && (anchor is null || EpisodePlanner.Position(anchor, series)!.Value.CompareTo(EpisodePlanner.Position(old.Anchor, series)!.Value) <= 0)) return;
         }
         var plan = new WatchedPlan(series, anchor, anchor is null ? "NeedsEpisode" : "Pending",
@@ -38,7 +54,9 @@ public sealed partial class Repository
     {
         using var db = Open(); using var tx = db.BeginTransaction(); using var cmd = db.CreateCommand(); cmd.Transaction = tx;
         cmd.CommandText = "SELECT body FROM watched_plans WHERE series_id=$id"; cmd.Parameters.AddWithValue("$id", observed.SeriesId);
-        if (cmd.ExecuteScalar() is not string body || JsonSerializer.Deserialize<WatchedPlan>(body)!.Anchor != observed.Anchor) return;
+        if (cmd.ExecuteScalar() is not string body) return;
+        var current = JsonSerializer.Deserialize<WatchedPlan>(body)!;
+        if (current.Anchor != observed.Anchor || current.FromBeginning != observed.FromBeginning) return;
         if (selection is not null)
             foreach (var id in selection.VideoIds)
             {
