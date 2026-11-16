@@ -42,6 +42,8 @@ Total plans completed: 1. Sem métricas de execução disponíveis.
 
 ### Decisions
 
+- A pedido do usuário, cancelado teste The Rings of Power (tt7631058): uma tarefa removida do qBittorrent sem apagar arquivos, registro Cancelled oculto da fila e acompanhamento automático removido. Dois filmes preservados. Ver quick/20261116-cancelar-serie-teste/.
+
 - libraryAdd de série agora prepara dois primeiros episódios regulares lançados, normalmente T01E01/T01E02. Plano persistente inicial pode ser substituído por watched explícito; repetição de adição não retrocede progresso conhecido. 54 testes de lógica e 53 HTTP aprovados; executável publicado preservando dados. Ver quick/20261116-library-primeiros-dois/.
 
 - 2026-11-16: usuário pediu antecipação a partir de Watched. Implementado evento persistente de episódio específico → dois sucessores canônicos já lançados, com mudança de temporada, dedupe e preservação de pacotes compartilhados. Reconsulta de lançamentos em 6h e falha de metadados em 10min. Sem evento específico não presume último visto. 49 testes de lógica, 53 HTTP e DOM Edge aprovados; UAT real watched pendente. Reprodução start permanece sem antecipação.
