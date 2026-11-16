@@ -4,10 +4,10 @@ current_phase: 1
 current_phase_name: Provar addon e eventos na TCL C6K
 status: in_progress
 stopped_at: Host da fase 1 implementado e iniciado; aguardando vídeo completo e testes reais na TCL.
-last_updated: "2026-11-16T12:33:59.384Z"
+last_updated: "2026-11-16T13:46:47.236Z"
 last_activity: 2026-11-16
 last_activity_desc: host .NET iniciado, build e 24 checks HTTP aprovados em desenvolvimento e publicação self-contained; validação física pendente.
-state_head: 256aa91972cb051ff460a7e1eac6c4bfc934f075
+state_head: dad03f0c7f2540c6f4218dc841faa0babb668b79
 progress:
   total_phases: 6
   completed_phases: 0
@@ -67,6 +67,7 @@ Ferramenta de prova pronta; validação física exige interação na TCL e mídi
 | 261115-unh | Investigar e planejar addon Stremio com pre-download de episodios | 2026-11-15 | 7d1d9a0 | [261115-unh-investigar-e-planejar-addon-stremio-com-](./quick/261115-unh-investigar-e-planejar-addon-stremio-com-/) |
 | 261116-d16 | Limpar referencias a integracao descartada em toda a documentacao | 2026-11-16 | e8a73e1 | [261116-d16-limpar-referencias-a-integracao-descarta](./quick/261116-d16-limpar-referencias-a-integracao-descarta/) |
 | 261116-d9k | Restaurar acentos nos documentos e configurar UTF-8 | 2026-11-16 | 256aa91 | [261116-d9k-corrigir-acentuacao-e-preservar-utf-8-no](./quick/261116-d9k-corrigir-acentuacao-e-preservar-utf-8-no/) |
+| 261116-ey7 | Criar URL curta de teste local para a TV | 2026-11-16 | dad03f0 | [261116-ey7-criar-url-curta-privada-para-teste-local](./quick/261116-ey7-criar-url-curta-privada-para-teste-local/) |
 
 ## Session Continuity
 
