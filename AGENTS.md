@@ -19,7 +19,7 @@ Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou
 - **Rede:** desempenho precisa ser medido entre PC e TV; nenhuma promessa universal de ausência de travamentos.
 - **Custo:** priorizar software gratuito e equipamento existente; disco e rede dimensionados após medição.
 - **Origem:** arquivos locais, URLs e torrents para os quais o usuário possua autorização de acesso; não incluir credenciais ou fontes reais no repositório.
-- **Escopo desta sessão:** pesquisa, requisitos e roadmap; instalação e implementação ficam para execução das fases.
+- **Escopo atual:** implementação da prova de compatibilidade da fase 1 autorizada em 2026-11-16. Testes físicos na TV permanecem obrigatórios antes de concluir a fase.
 
 <!-- GSD:project-end -->
 
@@ -49,7 +49,7 @@ Conventions not yet established. Will populate as patterns emerge during develop
 
 ## Architecture
 
-Canonical proposed architecture: [.planning/STREMIO-DESIGN.md](.planning/STREMIO-DESIGN.md). No application code exists yet.
+Architecture: [.planning/STREMIO-DESIGN.md](.planning/STREMIO-DESIGN.md). The compatibility host is implemented in src/Casa4K.App; scripts/Smoke-Test.ps1 verifies HTTP contracts. Downloading and episode preloading are not implemented yet.
 <!-- GSD:architecture-end -->
 
 <!-- GSD:skills-start source:skills/ -->

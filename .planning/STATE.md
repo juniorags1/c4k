@@ -2,16 +2,16 @@
 gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: Provar addon e eventos na TCL C6K
-status: planning
-stopped_at: Pesquisa e revisão de escopo completas; próximo comando `$gsd-plan-phase 1`. Design em .planning/STREMIO-DESIGN.md e protocolo físico em phases/01-stremio-compatibility/01-VALIDATION.md.
+status: in_progress
+stopped_at: Host da fase 1 implementado e iniciado; aguardando vídeo completo e testes reais na TCL.
 last_updated: "2026-11-16T12:33:59.384Z"
-last_activity: 2026-11-15
-last_activity_desc: revisão Stremio principal, design detalhado, 27 requisitos e roadmap atualizado; nenhuma implementação iniciada.
+last_activity: 2026-11-16
+last_activity_desc: host .NET iniciado, build e 24 checks HTTP aprovados em desenvolvimento e publicação self-contained; validação física pendente.
 state_head: 256aa91972cb051ff460a7e1eac6c4bfc934f075
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
+  total_plans: 1
   completed_plans: 0
   percent: 0
 ---
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-11-15)
 ## Current Position
 
 Phase: 1 of 6 (Provar addon e eventos na TCL C6K)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-11-15 — revisão Stremio principal, design detalhado, 27 requisitos e roadmap atualizado; nenhuma implementação iniciada.
+Plan: 1 of 1 in current phase
+Status: Awaiting physical compatibility verification
+Last activity: 2026-11-16 — host .NET iniciado, build e testes HTTP aprovados; mídia real e prova na TV pendentes.
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -48,15 +48,15 @@ Total plans completed: 0. Sem métricas de execução disponíveis.
 - Eventos player/library têm documentação e código públicos; prova na TV vem primeiro. Fallback por consumo HTTP só cobre mídia servida pelo Casa4K.
 - Janela padrão proposta de dois episódios. Evento não informa origem da mídia; resolvedor de fontes separado.
 - Execução por usuário/início no login proposta; sem exigência presumida de serviço antes do login.
-- Esta sessão termina no planejamento autorizado; não instalar componentes nem avançar automaticamente para implementação.
+- Em 2026-11-16 usuário autorizou iniciar implementação. Host da fase 1 entregue; não avançar à fase 2 antes da prova de compatibilidade na TV.
 
 ### Pending Todos
 
-Confirmar sistema/hardware do PC, espaço/rede, build/player Stremio e provedor de fontes específico. Planejar prova de compatibilidade da fase 1.
+Informar vídeo completo para teste e build/player Stremio; executar testes A1–D2. SDK .NET e Windows x64 já confirmados; provedor específico permanece aberto.
 
 ### Blockers/Concerns
 
-Nenhum bloqueio para planejamento. Testes físicos exigem ambiente do usuário; não há evidência da versão mínima Android TV para eventos. Eventos ao vivo não importam biblioteca/histórico anterior. Nenhuma validação física realizada.
+Ferramenta de prova pronta; validação física exige interação na TCL e mídia completa. Nenhum requisito físico concluído. Sem downloader/antecipação nesta entrega.
 
 ## Quick Tasks Completed
 
@@ -68,6 +68,6 @@ Nenhum bloqueio para planejamento. Testes físicos exigem ambiente do usuário; 
 
 ## Session Continuity
 
-Last session: 2026-11-15
-Stopped at: Pesquisa e revisão de escopo completas; próximo comando `$gsd-plan-phase 1`. Design em .planning/STREMIO-DESIGN.md e protocolo físico em phases/01-stremio-compatibility/01-VALIDATION.md.
+Last session: 2026-11-16
+Stopped at: Host da fase 1 implementado e iniciado. Painel em http://127.0.0.1:48241/admin/. Aguardando vídeo real e teste da TV; ver 01-01-SUMMARY.md e 01-COMPATIBILITY-RESULTS.md.
 Resume file: None

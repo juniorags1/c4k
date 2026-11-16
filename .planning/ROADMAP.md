@@ -25,7 +25,7 @@ Milestone v1: PC prepara próximos episódios; Stremio da TCL C6K Android TV 14 
 3. Testar matriz de start/pause/resume/seek/stop/library/watched por fonte própria e outra fonte; requests simuladas não aprovam suporte físico.
 4. Provar fallback por leitura HTTP e fonte simples para próximo episódio, distinguindo HEAD e prefetch.
 5. Decidir eventos completos, modo local com entrada inicial manual, ou transporte reprovado. Falha de transporte impede avançar sem resolução.
-**Plans:** To be planned.
+**Plans:** 01-01-PLAN.md implementado; checkpoint de compatibilidade na TV pendente.
 
 ### Phase 2: Assistir arquivos prontos pelo Casa4K
 **Goal:** Importar arquivo e assistir pela fonte Casa4K pelo servidor local.
@@ -96,7 +96,7 @@ Milestone v1: PC prepara próximos episódios; Stremio da TCL C6K Android TV 14 
 
 | Phase | Plans Complete | Status | Completed |
 |---|---|---|---|
-| 1. Provar addon e eventos na TCL C6K | 0/TBD | Not started | - |
+| 1. Provar addon e eventos na TCL C6K | 0/1 | Awaiting TV verification | - |
 | 2. Assistir arquivos prontos pelo Casa4K | 0/TBD | Not started | - |
 | 3. Preparar episódios a partir de fontes | 0/TBD | Not started | - |
 | 4. Antecipar próximos episódios | 0/TBD | Not started | - |
