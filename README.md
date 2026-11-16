@@ -1,6 +1,6 @@
 # C4K
 
-Addon Stremio e servidor local .NET para preparar mídia no PC e reproduzir na TV. **Versão 0.1: ferramenta de prova de compatibilidade**, com cadastro de arquivos completos e diagnóstico de eventos. Download, busca de fontes e antecipação de episódios serão implementados nas próximas fases.
+Addon Stremio e servidor local .NET para preparar mídia no PC e reproduzir na TV. **Versão 0.2: biblioteca local**, com importação persistente, legendas e diagnóstico de eventos. Download, busca de fontes e antecipação de episódios serão implementados nas próximas fases.
 
 ## Iniciar no PC
 
@@ -10,7 +10,11 @@ Com SDK .NET 10.0.400 instalado, na raiz do projeto:
 dotnet run --project src/C4K.App
 ```
 
-Abra **http://127.0.0.1:48241/admin/**. Coloque um arquivo completo na pasta indicada no painel e cadastre seu nome relativo. Use uma mídia autorizada que já tenha terminado de baixar. Cadastro não certifica integridade, codecs ou capacidade da TV. MP4, MKV, WEBM e M4V são aceitos; não há transcodificação.
+Abra **http://127.0.0.1:48241/admin/**. Informe o caminho completo de um vídeo já finalizado, título e tipo. Use o IMDb da obra para associar às fontes normais do Stremio; vazio cria uma identificação local no catálogo C4K. Para séries, informe temporada e episódio. MP4, MKV, WEBM e M4V são aceitos; não há transcodificação ou certificação de integridade.
+
+O painel acompanha importações. No mesmo disco, o app tenta hardlink sem duplicar os dados; origem permanece intacta, mas alterações posteriores no conteúdo do original também afetam esse vínculo. Escolha **cópia independente** se quiser separar o conteúdo. Caso hardlink não seja possível, o app copia em segundo plano e só publica o arquivo após concluir. O original nunca é excluído. Importações que falham mostram erro e permitem tentar novamente; após reinício, tarefas em andamento são reprocessadas sem publicar arquivos parciais. Retirar um item do catálogo não apaga os arquivos nem libera espaço automaticamente.
+
+Opcionalmente, informe legenda SRT/VTT em UTF-8 com até 5 MB e selecione idioma. Ela é oferecida no stream por acesso de mídia próprio. Seleção/sincronização e autoplay entre episódios ainda dependem do cliente real. Não use caminhos UNC ou arquivos em download. A API anterior `/admin/api/media` segue aceitando cadastro relativo à raiz para compatibilidade.
 
 Copie o manifest privado pelo painel e instale diretamente no Stremio. No catálogo C4K, abra a amostra cadastrada. Para associar arquivo a uma obra existente, use o IMDb correto; episódios usam o ID da série seguido de `:temporada:episódio`. Primeiro teste filme com ID local `c4k:amostra` para separar a prova de rede da associação de metadados.
 
@@ -41,7 +45,9 @@ Por padrão, `%LOCALAPPDATA%\C4K` contém `secrets.json`, `c4k.db` e a pasta `me
 
 A renomeação para C4K preservou os dados desta instalação, tokens e URL do manifest. O catálogo anterior segue como alias para clientes já instalados. Se o Stremio mantiver o nome antigo em cache, atualize/reinstale o addon com a mesma URL para carregar o nome C4K.
 
-Variáveis opcionais: `C4K_DATA_DIR`, `C4K_MEDIA_ROOT`, `C4K_ADDON_PORT`, `C4K_ADMIN_PORT`, `C4K_PUBLIC_URL`. O painel não permite registrar caminho fora da raiz de mídia ou links simbólicos/junctions. Não altere os arquivos registrados durante reprodução.
+Variáveis opcionais: `C4K_DATA_DIR`, `C4K_MEDIA_ROOT`, `C4K_ADDON_PORT`, `C4K_ADMIN_PORT`, `C4K_PUBLIC_URL`. A importação lê arquivos locais de outras pastas e publica na raiz gerenciada, recusando links simbólicos/junctions e pastas de rede. O cadastro direto antigo continua restrito à raiz. Não altere arquivos durante reprodução.
+
+Em **Pastas, endereço da rede e acesso**, salve o IP deste PC para persistir em `network.json`. Uma variável `C4K_PUBLIC_URL` explícita tem prioridade e bloqueia alteração pelo painel. Gerar novos links revoga os anteriores de addon, vídeo e legenda, preservando arquivos e catálogo; será necessário reinstalar o addon. A pasta da biblioteca pode ser configurada pelo painel apenas quando estiver vazia e sem importações em andamento, persistindo em `library.json`; uma variável `C4K_MEDIA_ROOT` explícita tem prioridade. Trocar pasta não move nem exclui arquivos antigos.
 
 O painel mostra os últimos 100 eventos recebidos; banco retém até 5.000. A presença de `libraryAdd` ou `start` só demonstra um evento recebido: requests simuladas não aprovam compatibilidade com Stremio Android TV. Não há importação de biblioteca antiga ou replay garantido. Reprodução por player externo pode mudar os eventos disponíveis.
 
@@ -50,6 +56,7 @@ O painel mostra os últimos 100 eventos recebidos; banco retém até 5.000. A pr
 ```powershell
 dotnet build src/C4K.App -c Release
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Smoke-Test.ps1
+dotnet run --project tests/C4K.LibraryTests -c Release
 dotnet publish src/C4K.App -c Release -r win-x64 --self-contained true -o artifacts/win-x64
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Smoke-Test.ps1 -Published
 ```
@@ -63,4 +70,4 @@ Para iniciar em segundo plano: `powershell -NoProfile -ExecutionPolicy Bypass -F
 1. Registrar versão exata do Stremio e player usado, além de Android TV 14.
 2. Instalar o manifest; reproduzir vídeo completo, testar áudio/legendas, três seeks e 60 minutos de sessão.
 3. Adicionar/remover obra na biblioteca e iniciar/pausar/encerrar vídeos por fonte C4K e outra fonte; consultar eventos no painel.
-4. Registrar resultado conforme [.planning/phases/01-stremio-compatibility/01-VALIDATION.md](.planning/phases/01-stremio-compatibility/01-VALIDATION.md). Esses testes físicos permanecem pendentes até execução real.
+4. Reprodução básica na TCL foi confirmada pelo usuário. Registrar resultados detalhados conforme [.planning/phases/01-stremio-compatibility/01-VALIDATION.md](.planning/phases/01-stremio-compatibility/01-VALIDATION.md); duração, legendas, autoplay e eventos específicos permanecem como verificações separadas.

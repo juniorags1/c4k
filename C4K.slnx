@@ -2,4 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/C4K.App/C4K.App.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/C4K.LibraryTests/C4K.LibraryTests.csproj" />
+  </Folder>
 </Solution>

@@ -4,13 +4,18 @@ namespace C4K;
 
 public sealed class MediaFiles(string root)
 {
-    public string Root { get; } = Path.GetFullPath(root);
-    public string? Resolve(string name)
+    public string Root { get; private set; } = Path.GetFullPath(root);
+    public void SetRoot(string directory) => Root = Path.GetFullPath(directory);
+    public string? Resolve(string name) => ResolveFile(name, subtitle: false);
+    public string? ResolveSubtitle(string name) => ResolveFile(name, subtitle: true);
+
+    private string? ResolveFile(string name, bool subtitle)
     {
         if (string.IsNullOrWhiteSpace(name) || Path.IsPathRooted(name) || name.Contains(':')) return null;
         var path = Path.GetFullPath(Path.Combine(Root, name));
         if (!path.StartsWith(Path.TrimEndingDirectorySeparator(Root) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) return null;
-        if (Path.GetExtension(path).ToLowerInvariant() is not (".mp4" or ".mkv" or ".webm" or ".m4v")) return null;
+        var extension = Path.GetExtension(path).ToLowerInvariant();
+        if (subtitle ? extension is not (".srt" or ".vtt") : extension is not (".mp4" or ".mkv" or ".webm" or ".m4v")) return null;
         if (!File.Exists(path) || new FileInfo(path).Length == 0) return null;
         for (var entry = path; entry is not null; entry = Path.GetDirectoryName(entry))
         {

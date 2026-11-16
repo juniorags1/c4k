@@ -5,12 +5,17 @@ using System.Text;
 using System.Threading.RateLimiting;
 using C4K;
 using Microsoft.AspNetCore.WebUtilities;
+using System.Net.NetworkInformation;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders(); // URLs de pareamento não podem aparecer nos logs HTTP.
 var dataDir = Environment.GetEnvironmentVariable("C4K_DATA_DIR") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "C4K");
 var settings = AppSettings.Load(dataDir);
-var mediaRoot = Environment.GetEnvironmentVariable("C4K_MEDIA_ROOT") ?? Path.Combine(dataDir, "media");
+var libraryPath = Path.Combine(dataDir, "library.json");
+var savedRoot = File.Exists(libraryPath) ? JsonSerializer.Deserialize<LibrarySettings>(File.ReadAllText(libraryPath))?.Root : null;
+var mediaRoot = Environment.GetEnvironmentVariable("C4K_MEDIA_ROOT") ?? savedRoot ?? Path.Combine(dataDir, "media");
 Directory.CreateDirectory(mediaRoot);
 var files = new MediaFiles(mediaRoot);
 var repository = new Repository(dataDir);
@@ -18,10 +23,16 @@ var addonPort = int.Parse(Environment.GetEnvironmentVariable("C4K_ADDON_PORT") ?
 var adminPort = int.Parse(Environment.GetEnvironmentVariable("C4K_ADMIN_PORT") ?? "48241", CultureInfo.InvariantCulture);
 if (addonPort == adminPort || addonPort is < 1024 or > 65535 || adminPort is < 1024 or > 65535)
     throw new InvalidOperationException("Portas devem ser distintas e estar entre 1024 e 65535.");
-var publicUrl = AppSettings.PublicUrl(addonPort);
-// Alias curto para digitação no controle da TV. Restrito ao uso doméstico em LAN.
-var shortAddonCode = settings.AddonToken[..10];
-var manifestUrl = $"{publicUrl}/{shortAddonCode}/manifest.json";
+var networkPath = Path.Combine(dataDir, "network.json");
+var savedAddress = File.Exists(networkPath) ? JsonSerializer.Deserialize<NetworkSettings>(File.ReadAllText(networkPath))?.PublicUrl : null;
+var publicUrl = AppSettings.PublicUrl(addonPort, savedAddress);
+string ManifestUrl() => $"{publicUrl}/{settings.AddonToken[..10]}/manifest.json";
+string DesktopManifestUrl() => $"http://127.0.0.1:{addonPort}/{settings.AddonToken[..10]}/manifest.json";
+var pairingGate = new object();
+var libraryGate = new object();
+builder.Services.AddSingleton(repository);
+builder.Services.AddSingleton(files);
+builder.Services.AddHostedService<ImportWorker>();
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(addonPort);
@@ -38,7 +49,7 @@ var app = builder.Build();
 app.Use(async (context, next) =>
 {
     // Reescrita interna, sem redirect: recursos continuam sob a base curta no cliente.
-    if (context.Request.Path.StartsWithSegments($"/{shortAddonCode}", out var remainder))
+    if (context.Request.Path.StartsWithSegments($"/{settings.AddonToken[..10]}", out var remainder))
         context.Request.Path = $"/a/{settings.AddonToken}{remainder}";
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
     context.Response.Headers.CacheControl = "no-store";
@@ -58,7 +69,7 @@ app.Use(async (context, next) =>
         }
     }
     else if (context.Connection.LocalPort != addonPort) { context.Response.StatusCode = 404; return; }
-    if (path.StartsWithSegments("/a") || path.StartsWithSegments("/m"))
+    if (path.StartsWithSegments("/a") || path.StartsWithSegments("/m") || path.StartsWithSegments("/s"))
     {
         context.Response.Headers.AccessControlAllowOrigin = "*";
         context.Response.Headers.AccessControlAllowMethods = "GET, HEAD, OPTIONS";
@@ -78,17 +89,89 @@ app.Use(async (context, next) =>
 app.UseRouting(); // Resolver a rota após expandir o alias curto.
 app.UseRateLimiter();
 app.MapGet("/", () => Results.Redirect("/admin/"));
-app.MapGet("/admin/", () => Results.Content(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Panel.html")), "text/html; charset=utf-8"));
+app.MapGet("/admin/", () => Results.Content(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "LibraryPanel.html")), "text/html; charset=utf-8"));
 app.MapGet("/admin/api/status", () => new
 {
-    manifestUrl,
-    installUrl = $"stremio:///addons?addon={Uri.EscapeDataString(manifestUrl)}",
-    browserInstallUrl = $"https://web.stremio.com/#/addons?addon={Uri.EscapeDataString(manifestUrl)}",
+    manifestUrl = ManifestUrl(), desktopManifestUrl = DesktopManifestUrl(),
+    installUrl = $"stremio:///addons?addon={Uri.EscapeDataString(DesktopManifestUrl())}",
+    browserInstallUrl = $"https://web.stremio.com/#/addons?addon={Uri.EscapeDataString(ManifestUrl())}",
     publicUrl, mediaRoot = files.Root, media = repository.Media(), events = repository.Events(),
-    warning = "Prova de compatibilidade: downloads e antecipação ainda não implementados. Eventos reais da TV não foram validados."
+    imports = repository.Imports(),
+    warning = "Biblioteca local: downloads de fontes e antecipação de episódios ainda não implementados."
+});
+app.MapPost("/admin/api/imports", (ImportRequest input) =>
+{
+    lock (libraryGate)
+    {
+    if (!LibraryRequests.ValidMetadata(input.Media)) return Results.BadRequest(new { error = "Identificação do filme/episódio inválida." });
+    var source = LibraryRequests.Source(input.SourcePath);
+    var subtitle = string.IsNullOrWhiteSpace(input.SubtitlePath) ? null : LibraryRequests.Source(input.SubtitlePath, subtitle: true);
+    if (source is null || !string.IsNullOrWhiteSpace(input.SubtitlePath) && subtitle is null ||
+        input.SubtitleLang is not null && !Regex.IsMatch(input.SubtitleLang, "^[a-z]{3}$", RegexOptions.CultureInvariant))
+        return Results.BadRequest(new { error = "Selecione arquivo completo local MP4/MKV/WEBM/M4V e, opcionalmente, SRT/VTT de até 5 MB. Não use links ou pastas de rede." });
+    if (repository.Imports().Count(j => j.State is "Queued" or "Importing") >= 50)
+        return Results.Conflict(new { error = "Fila cheia. Aguarde as importações atuais." });
+    var job = repository.QueueImport(input with { SourcePath = source, SubtitlePath = subtitle });
+    return Results.Accepted($"/admin/api/imports/{job.Id}", job);
+    }
+});
+app.MapGet("/admin/api/imports/{id}", (string id) => repository.Imports(id).FirstOrDefault() is { } job ? Results.Ok(job) : Results.NotFound());
+app.MapPost("/admin/api/imports/{id}/retry", (string id) =>
+{
+    lock (libraryGate)
+        return repository.RetryImport(id) ? Results.Ok(new { ok = true }) : Results.Conflict(new { error = "Só é possível repetir uma importação que falhou." });
+});
+app.MapDelete("/admin/api/media/{id}", (string id) => repository.RemoveMedia(id) ? Results.Ok(new { ok = true }) : Results.NotFound());
+app.MapPost("/admin/api/pairing/rotate", () =>
+{
+    lock (pairingGate)
+    {
+        var replacement = new AppSettings(AppSettings.NewToken(), AppSettings.NewToken());
+        replacement.Save(dataDir); settings = replacement;
+    }
+    return Results.Ok(new { manifestUrl = ManifestUrl() });
+});
+app.MapPost("/admin/api/network", (NetworkSettings input) =>
+{
+    if (Environment.GetEnvironmentVariable("C4K_PUBLIC_URL") is not null)
+        return Results.Conflict(new { error = "Endereço definido no ambiente. Remova C4K_PUBLIC_URL antes de alterar pelo painel." });
+    if (!Uri.TryCreate(input.PublicUrl, UriKind.Absolute, out var address) || address.Scheme != "http" ||
+        address.Port != addonPort || address.AbsolutePath != "/" || address.Query != "" || address.Fragment != "" || address.UserInfo != "" ||
+        !IPAddress.TryParse(address.Host, out var ip) || !NetworkInterface.GetAllNetworkInterfaces().SelectMany(n => n.GetIPProperties().UnicastAddresses).Any(a => a.Address.Equals(ip)))
+        return Results.BadRequest(new { error = "Use http://IP-deste-PC:porta, sem caminho, na porta atual do addon." });
+    lock (pairingGate)
+    {
+        var replacement = new NetworkSettings(address.GetLeftPart(UriPartial.Authority));
+        File.WriteAllText(networkPath + ".tmp", JsonSerializer.Serialize(replacement));
+        File.Move(networkPath + ".tmp", networkPath, overwrite: true); publicUrl = replacement.PublicUrl;
+    }
+    return Results.Ok(new { manifestUrl = ManifestUrl() });
+});
+app.MapPost("/admin/api/library-root", (LibrarySettings input) =>
+{
+    lock (libraryGate)
+    {
+        if (Environment.GetEnvironmentVariable("C4K_MEDIA_ROOT") is not null)
+            return Results.Conflict(new { error = "Pasta definida no ambiente. Remova C4K_MEDIA_ROOT antes de alterar pelo painel." });
+        if (!repository.CanChangeRoot()) return Results.Conflict(new { error = "A biblioteca precisa estar vazia e sem importações em andamento. Esta ação não move arquivos existentes." });
+        if (string.IsNullOrWhiteSpace(input.Root) || !Path.IsPathFullyQualified(input.Root) || input.Root.StartsWith(@"\\", StringComparison.Ordinal) || input.Root[2..].Contains(':'))
+            return Results.BadRequest(new { error = "Informe uma pasta local absoluta, sem links ou caminho de rede." });
+        var root = Path.GetFullPath(input.Root);
+        if (Path.TrimEndingDirectorySeparator(root).Length <= Path.TrimEndingDirectorySeparator(Path.GetPathRoot(root)!).Length)
+            return Results.BadRequest(new { error = "Escolha uma pasta, não a raiz do disco." });
+        for (var current = root; current is not null; current = Path.GetDirectoryName(current))
+            if ((Directory.Exists(current) || File.Exists(current)) && (File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
+                return Results.BadRequest(new { error = "Não use links simbólicos ou junctions." });
+        Directory.CreateDirectory(root);
+        File.WriteAllText(libraryPath + ".tmp", JsonSerializer.Serialize(new LibrarySettings(root)));
+        File.Move(libraryPath + ".tmp", libraryPath, overwrite: true); files.SetRoot(root);
+        return Results.Ok(new { mediaRoot = files.Root });
+    }
 });
 app.MapPost("/admin/api/media", (RegisterMedia input) =>
 {
+    lock (libraryGate)
+    {
     if (input.Type is not ("movie" or "series") || !MediaFiles.ValidId(input.MetaId) || !MediaFiles.ValidId(input.VideoId) ||
         input.Title is null || input.Title.Length is < 1 or > 200 || input.FileName is null || input.FileName.Length > 1000)
         return Results.BadRequest(new { error = "Informe tipo, IDs, título e arquivo válidos." });
@@ -98,8 +181,9 @@ app.MapPost("/admin/api/media", (RegisterMedia input) =>
     if (files.Resolve(input.FileName) is null) return Results.BadRequest(new { error = "Arquivo completo deve existir na pasta de mídia, sem links, e ser MP4, MKV, WEBM ou M4V." });
     repository.Register(new(Guid.NewGuid().ToString("N"), input.Type, input.MetaId, input.VideoId, input.Title, input.FileName, input.Season, input.Episode));
     return Results.Ok(new { ok = true });
+    }
 });
-app.MapGet("/health/live", () => Results.Ok(new { status = "ok", stage = "compatibility-probe" }));
+app.MapGet("/health/live", () => Results.Ok(new { status = "ok", stage = "local-library", version = "0.2.0" }));
 
 var addon = app.MapGroup("/a/{token}").AddEndpointFilter(async (context, next) =>
 {
@@ -108,8 +192,8 @@ var addon = app.MapGroup("/a/{token}").AddEndpointFilter(async (context, next) =
 });
 addon.MapGet("/manifest.json", () => Results.Json(new
 {
-    id = "local.c4k.probe", version = "0.1.0", name = "C4K — teste local",
-    description = "Arquivos completos no PC e diagnóstico de eventos. Não realiza downloads nesta versão.",
+    id = "local.c4k.probe", version = "0.2.0", name = "C4K — biblioteca local",
+    description = "Filmes e episódios completos no PC, importação e legendas locais.",
     types = new[] { "movie", "series" },
     resources = new object[] { "catalog", new { name = "meta", types = new[] { "movie", "series" }, idPrefixes = new[] { "tt", "c4k:" } },
         new { name = "stream", types = new[] { "movie", "series" }, idPrefixes = new[] { "tt", "c4k:" } },
@@ -135,6 +219,9 @@ addon.MapGet("/stream/{type}/{id}.json", (string type, string id) =>
     return item is null ? Results.Json(new { streams = Array.Empty<object>() }) : Results.Json(new
     {
         streams = new[] { new { name = "C4K — disponível no PC", url = $"{publicUrl}/m/{settings.MediaToken}/{item.Id}",
+            subtitles = repository.Subtitle(item.Id) is { } subtitle && files.ResolveSubtitle(subtitle.FileName) is not null
+                ? new[] { new { id = item.Id + "-local", url = $"{publicUrl}/s/{settings.MediaToken}/{item.Id}{Path.GetExtension(subtitle.FileName)}", lang = subtitle.Language } }
+                : [],
             behaviorHints = new { notWebReady = true, bingeGroup = "c4k-local", filename = Path.GetFileName(item.FileName), videoSize = new FileInfo(files.Resolve(item.FileName)!).Length } } }
     });
 });
@@ -166,11 +253,20 @@ app.MapMethods("/m/{token}/{id}", ["GET", "HEAD"], (string token, string id) =>
     var path = item is null ? null : files.Resolve(item.FileName);
     return path is null ? Results.NotFound() : Results.File(path, MediaFiles.ContentType(path), enableRangeProcessing: true);
 });
+app.MapMethods("/s/{token}/{id}.{extension}", ["GET", "HEAD"], (string token, string id, string extension) =>
+{
+    if (!TokenEquals(token, settings.MediaToken)) return Results.NotFound();
+    var subtitle = repository.Subtitle(id);
+    var path = subtitle is null || Path.GetExtension(subtitle.FileName) != "." + extension ? null : files.ResolveSubtitle(subtitle.FileName);
+    return path is null ? Results.NotFound() : Results.File(path, extension == "vtt" ? "text/vtt; charset=utf-8" : "application/x-subrip; charset=utf-8");
+});
 Console.WriteLine($"C4K: painel local http://127.0.0.1:{adminPort}/admin/");
-Console.WriteLine("Cadastre um arquivo completo e copie o manifest pelo painel. Nenhum download é iniciado nesta versão.");
+Console.WriteLine("Importe arquivos completos e copie o manifest pelo painel. Nenhum download de fontes é iniciado nesta versão.");
 await app.RunAsync();
 
 static bool TokenEquals(string? actual, string expected) => actual is not null &&
     CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(actual), Encoding.UTF8.GetBytes(expected));
 
 public sealed record RegisterMedia(string Type, string MetaId, string VideoId, string Title, string FileName, int? Season, int? Episode);
+public sealed record NetworkSettings(string PublicUrl);
+public sealed record LibrarySettings(string Root);

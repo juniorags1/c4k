@@ -10,6 +10,13 @@ public sealed record AppSettings(string AddonToken, string MediaToken)
 {
     public static string NewToken() => Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();
 
+    public void Save(string directory)
+    {
+        var path = Path.Combine(directory, "secrets.json");
+        File.WriteAllText(path + ".tmp", JsonSerializer.Serialize(this));
+        File.Move(path + ".tmp", path, overwrite: true);
+    }
+
     public static AppSettings Load(string directory)
     {
         Directory.CreateDirectory(directory);
@@ -27,9 +34,9 @@ public sealed record AppSettings(string AddonToken, string MediaToken)
         return settings;
     }
 
-    public static string PublicUrl(int port)
+    public static string PublicUrl(int port, string? saved = null)
     {
-        var configured = Environment.GetEnvironmentVariable("C4K_PUBLIC_URL");
+        var configured = Environment.GetEnvironmentVariable("C4K_PUBLIC_URL") ?? saved;
         if (!string.IsNullOrWhiteSpace(configured))
         {
             if (!Uri.TryCreate(configured, UriKind.Absolute, out var uri) || uri.Scheme != "http" ||

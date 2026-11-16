@@ -5,7 +5,7 @@ namespace C4K;
 public sealed record MediaItem(string Id, string Type, string MetaId, string VideoId, string Title, string FileName, int? Season, int? Episode);
 public sealed record Activity(long Id, string Resource, string Type, string VideoId, string Action, long? CurrentTime, long? Duration, string? ChangedVideos, string ReceivedAt);
 
-public sealed class Repository
+public sealed partial class Repository
 {
     private readonly string connectionString;
     public Repository(string directory)
@@ -24,6 +24,7 @@ public sealed class Repository
                 changed_videos TEXT, received_at TEXT NOT NULL);
             """;
         command.ExecuteNonQuery();
+        InitializeLibrary();
     }
 
     private SqliteConnection Open() { var db = new SqliteConnection(connectionString); db.Open(); return db; }
@@ -42,7 +43,7 @@ public sealed class Repository
         using var db = Open(); using var cmd = db.CreateCommand();
         cmd.CommandText = """
             INSERT INTO media VALUES ($id,$type,$meta,$video,$title,$file,$season,$episode)
-            ON CONFLICT(video_id) DO UPDATE SET title=$title,file_name=$file,season=$season,episode=$episode;
+            ON CONFLICT(video_id) DO UPDATE SET type=$type,meta_id=$meta,title=$title,file_name=$file,season=$season,episode=$episode;
             """;
         cmd.Parameters.AddWithValue("$id", item.Id); cmd.Parameters.AddWithValue("$type", item.Type);
         cmd.Parameters.AddWithValue("$meta", item.MetaId); cmd.Parameters.AddWithValue("$video", item.VideoId);
