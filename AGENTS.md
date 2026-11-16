@@ -27,14 +27,14 @@ Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou
 
 ## Technology Stack
 
-| Componente | Escolha | Confian?a |
+| Componente | Escolha | Confiança |
 |---|---|---|
-| Host/addon/m?dia/painel | C# e ASP.NET Core .NET 10 LTS | Alta documental |
+| Host/addon/mídia/painel | C# e ASP.NET Core .NET 10 LTS | Alta documental |
 | UI | Razor Pages e JS pequeno | Alta |
-| Persist?ncia | SQLite e EF Core 10 | Alta; vers?o patch fixada ao implementar |
-| Jobs | BackgroundService e inten??es/inbox persistidos | Proposta a testar |
-| Download | qBittorrent nativo por Web API em loopback | Alta documental; vers?o negociada |
-| TV | Stremio na TCL C6K Android TV 14 | Reprodu??o LAN e eventos pendentes |
+| Persistência | SQLite e EF Core 10 | Alta; versão patch fixada ao implementar |
+| Jobs | BackgroundService e intenções/inbox persistidos | Proposta a testar |
+| Download | qBittorrent nativo por Web API em loopback | Alta documental; versão negociada |
+| TV | Stremio na TCL C6K Android TV 14 | Reprodução LAN e eventos pendentes |
 | Instalador | Inno Setup, app self-contained win-x64 | Proposta; VM limpa na fase 6 |
 <!-- GSD:stack-end -->
 

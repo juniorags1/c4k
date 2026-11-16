@@ -1,4 +1,4 @@
-> Hist?rico da primeira proposta, substitu?do pelo design Stremio principal em 2026-11-15. N?o usar como escopo vigente.
+> Histórico da primeira proposta, substituído pelo design Stremio principal em 2026-11-15. Não usar como escopo vigente.
 
 # Opções e escopo funcional
 
