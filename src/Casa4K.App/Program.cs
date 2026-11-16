@@ -19,6 +19,7 @@ var adminPort = int.Parse(Environment.GetEnvironmentVariable("CASA4K_ADMIN_PORT"
 if (addonPort == adminPort || addonPort is < 1024 or > 65535 || adminPort is < 1024 or > 65535)
     throw new InvalidOperationException("Portas devem ser distintas e estar entre 1024 e 65535.");
 var publicUrl = AppSettings.PublicUrl(addonPort);
+var manifestUrl = $"{publicUrl}/a/{settings.AddonToken}/manifest.json";
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(addonPort);
@@ -74,7 +75,9 @@ app.MapGet("/", () => Results.Redirect("/admin/"));
 app.MapGet("/admin/", () => Results.Content(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Panel.html")), "text/html; charset=utf-8"));
 app.MapGet("/admin/api/status", () => new
 {
-    manifestUrl = $"{publicUrl}/a/{settings.AddonToken}/manifest.json",
+    manifestUrl,
+    installUrl = $"stremio:///addons?addon={Uri.EscapeDataString(manifestUrl)}",
+    browserInstallUrl = $"https://web.stremio.com/#/addons?addon={Uri.EscapeDataString(manifestUrl)}",
     publicUrl, mediaRoot = files.Root, media = repository.Media(), events = repository.Events(),
     warning = "Prova de compatibilidade: downloads e antecipação ainda não implementados. Eventos reais da TV não foram validados."
 });

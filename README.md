@@ -25,6 +25,14 @@ dotnet run --project src/Casa4K.App
 
 Use o IP real do PC, preferencialmente reservado no DHCP. O link de instalação contém uma chave de acesso; não publique nem compartilhe. HTTP doméstico não cifra tráfego. Suporte a instalação HTTP LAN precisa ser confirmado na TV. Nenhum certificado ou túnel é exigido ou instalado automaticamente.
 
+### “Failed to fetch” ao instalar no PC
+
+O Stremio Windows usa WebView2 para carregar a interface web. Versões atuais do motor podem bloquear acesso de `https://web.stremio.com` a endereços locais se a permissão de rede local estiver negada. Resposta 200 no PowerShell não comprova que o navegador tenha essa permissão; trocar IP LAN por localhost também pode continuar bloqueado.
+
+No painel Casa4K, use **Instalar pelo navegador** e permita o acesso à rede local para `web.stremio.com` quando solicitado. Se já foi negado, reveja a permissão desse site no Edge/Chrome. Entre na mesma conta do Stremio da TV para sincronizar o addon; isso não comprova reprodução na TV ou acesso posterior no aplicativo Windows. Não desative segurança global do navegador. [Orientação Microsoft](https://support.microsoft.com/en-us/edge/control-a-website-s-access-to-the-local-network-in-microsoft-edge).
+
+O botão do aplicativo usa `stremio:///addons?addon=...` para preservar o `http://` completo. A forma simples `stremio://host/manifest.json` pode ser reconstruída como HTTPS pelo Stremio atual, incompatível com este host HTTP. [Código oficial do cliente](https://github.com/Stremio/stremio-web/blob/development/src/App/ShellOpenHandler.ts).
+
 ## Dados locais e diagnóstico
 
 Por padrão, `%LOCALAPPDATA%\Casa4K` contém `secrets.json`, `casa4k.db` e a pasta `media`. Proteja esse diretório como dados privados. Não o coloque no Git. `secrets.json` mantém dois tokens separados (addon/mídia), fora das URLs de log e independentes do painel. Para revogar o pareamento nesta prova, pare o host, remova somente `secrets.json` e reinicie; será necessário reinstalar o novo manifest.

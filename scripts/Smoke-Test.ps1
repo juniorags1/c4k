@@ -66,6 +66,8 @@ try {
     Check ((Request 'GET' "$admin/admin/api/status" $null @{ 'X-Casa4K-Admin'='1'; Origin='https://invalid.example' }).Status -eq 403) 'Admin recusa origem externa'
     Check ((Request 'GET' "$admin/admin/" $null @{ Host='invalid.example' }).Status -eq 404) 'Admin recusa DNS rebinding por Host'
     $status = (Request 'GET' "$admin/admin/api/status" $null $auth).Body | ConvertFrom-Json
+    Check ($status.installUrl.StartsWith('stremio:///addons?addon=') -and [Uri]::UnescapeDataString($status.installUrl.Substring('stremio:///addons?addon='.Length)) -eq $status.manifestUrl) 'Link Stremio preserva esquema HTTP explícito'
+    Check ($status.browserInstallUrl.StartsWith('https://web.stremio.com/#/addons?addon=') -and [Uri]::UnescapeDataString($status.browserInstallUrl.Substring('https://web.stremio.com/#/addons?addon='.Length)) -eq $status.manifestUrl) 'Link navegador preserva manifest LAN'
     $manifest = Request 'GET' $status.manifestUrl
     Check ($manifest.Status -eq 200) 'Manifest privado'
     Check ($manifest.Headers.Contains('Access-Control-Allow-Origin')) 'CORS no addon'

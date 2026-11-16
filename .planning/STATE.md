@@ -56,6 +56,8 @@ Informar vídeo completo para teste e build/player Stremio; executar testes A1�
 
 ### Blockers/Concerns
 
+Instalação manual do manifest no Stremio Windows reportou Failed to fetch. Reprodução isolada no Edge identificou bloqueio de permissão de rede local; ao conceder permissão no contexto de teste, manifest respondeu 200. Painel atualizado com instalação pelo navegador e links que preservam HTTP; 26 checks aprovados. Reteste no cliente do usuário pendente; ver .planning/debug/stremio-failed-fetch.md.
+
 Ferramenta de prova pronta; validação física exige interação na TCL e mídia completa. Nenhum requisito físico concluído. Sem downloader/antecipação nesta entrega.
 
 ## Quick Tasks Completed
