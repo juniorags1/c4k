@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Preparar episódios a partir de fontes
 status: in_progress
-stopped_at: HTTPS local configurado e validado no Windows; CA pública pronta, aguardando instalação/aceitação na TCL, sem menu encontrado pelo usuário.
+stopped_at: Usuário reprovou teste de certificado; HTTPS removido e C4K publicado somente HTTP, mantendo dados e fila.
 last_updated: "2026-11-16T14:58:34.375Z"
 last_activity: 2026-11-16
 last_activity_desc: biblioteca local 0.2 entregue; 65 checks HTTP e 7 de recuperação aprovados.
@@ -41,6 +41,8 @@ Total plans completed: 1. Sem métricas de execução disponíveis.
 ## Accumulated Context
 
 ### Decisions
+
+- Usuário pediu retirar HTTPS após falha na TV. Código, listener, painel e scripts de HTTPS removidos; HTTP restaurado com mesmo manifest/código, seis mídias e fila preservadas. Porta 48242 fechada e /ca.crt 404. Limpeza de certificados Windows foi bloqueada pela revisão automática sem motivo específico; certificados residuais ficam sem uso e não houve tentativa alternativa de remoção. Ver quick/20261116-remover-https/.
 
 - Usuário autorizou certificado local sem domínio/túnel. HTTPS 48242 configurado, mesmo manifest para PC/TV e HTTP 48240 preservado. Certificado confiado no Windows, privado não exportável; CA pública disponível no painel e /ca.crt. 54 testes de lógica, 53 HTTP, 14 HTTPS e Edge real aprovados. TV ainda não validada: usuário não encontrou menu de certificado. Ver quick/20261116-https-local/ e docs/HTTPS-LOCAL.md.
 
@@ -81,6 +83,7 @@ Usuário confirmou reprodução básica na TCL. Duração, seek, áudio/legendas
 
 | # | Description | Date | Commit | Directory |
 |---|---|---|---|---|
+| 20261116-remover-https | Remover HTTPS e restaurar operação HTTP | 2026-11-16 | ver histórico Git | [remover-https](./quick/20261116-remover-https/) |
 | 20261116-https-local | Preparar certificado e HTTPS local para teste PC/TV | 2026-11-16 | ver histórico Git | [https-local](./quick/20261116-https-local/) |
 | 20261116-library-primeiros-dois | Baixar primeiros dois episódios ao adicionar série à biblioteca | 2026-11-16 | ver histórico Git | [library-primeiros-dois](./quick/20261116-library-primeiros-dois/) |
 | 20261116-watched-proximos-dois | Preparar próximos dois episódios ao marcar Watched | 2026-11-16 | ver histórico Git | [watched-proximos-dois](./quick/20261116-watched-proximos-dois/) |

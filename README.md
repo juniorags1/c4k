@@ -51,8 +51,6 @@ O botão do aplicativo usa `stremio:///addons?addon=...` para preservar o `http:
 
 ## Dados locais e diagnóstico
 
-Para o teste com manifest HTTPS único no PC e na TV, veja [HTTPS local](docs/HTTPS-LOCAL.md). A configuração opcional usa certificado local no Windows e porta 48242; o HTTP anterior continua disponível. A TV precisa aceitar a CA local antes de utilizar o novo manifest.
-
 Por padrão, `%LOCALAPPDATA%\C4K` contém `secrets.json`, `automation.json`, `library.json` e `c4k.db`; vídeos ficam em `C:\media\done`. Proteja esse diretório como dados privados. Não o coloque no Git. `secrets.json` mantém dois tokens separados (addon/mídia), fora das URLs de log e independentes do painel. Para revogar o pareamento, use o botão de gerar novos links.
 
 A renomeação para C4K preservou os dados desta instalação, tokens e URL do manifest. O catálogo anterior segue como alias para clientes já instalados. Se o Stremio mantiver o nome antigo em cache, atualize/reinstale o addon com a mesma URL para carregar o nome C4K.

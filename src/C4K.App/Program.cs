@@ -24,11 +24,10 @@ var adminPort = int.Parse(Environment.GetEnvironmentVariable("C4K_ADMIN_PORT") ?
 if (addonPort == adminPort || addonPort is < 1024 or > 65535 || adminPort is < 1024 or > 65535)
     throw new InvalidOperationException("Portas devem ser distintas e estar entre 1024 e 65535.");
 var networkPath = Path.Combine(dataDir, "network.json");
-using var localHttps = LocalHttps.Load(dataDir, addonPort, adminPort);
 var savedAddress = File.Exists(networkPath) ? JsonSerializer.Deserialize<NetworkSettings>(File.ReadAllText(networkPath))?.PublicUrl : null;
-var publicUrl = AppSettings.PublicUrl(addonPort, savedAddress, localHttps?.Options.Port);
+var publicUrl = AppSettings.PublicUrl(addonPort, savedAddress);
 string ManifestUrl() => $"{publicUrl}/{settings.AddonToken[..10]}/manifest.json";
-string DesktopManifestUrl() => publicUrl.StartsWith("https://", StringComparison.Ordinal) ? ManifestUrl() : $"http://127.0.0.1:{addonPort}/{settings.AddonToken[..10]}/manifest.json";
+string DesktopManifestUrl() => $"http://127.0.0.1:{addonPort}/{settings.AddonToken[..10]}/manifest.json";
 var pairingGate = new object();
 var libraryGate = new object();
 builder.Services.AddSingleton(repository);
@@ -41,7 +40,6 @@ builder.Services.AddHostedService(_ => downloader);
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(addonPort);
-    if (localHttps is not null) options.ListenAnyIP(localHttps.Options.Port, listen => listen.UseHttps(localHttps.Certificate));
     options.Listen(IPAddress.Loopback, adminPort);
     options.Limits.MaxRequestBodySize = 16 * 1024;
 });
@@ -74,7 +72,7 @@ app.Use(async (context, next) =>
             if (origin.Length > 0 && origin != $"http://{context.Request.Host}") { context.Response.StatusCode = 403; return; }
         }
     }
-    else if (context.Connection.LocalPort != addonPort && context.Connection.LocalPort != localHttps?.Options.Port) { context.Response.StatusCode = 404; return; }
+    else if (context.Connection.LocalPort != addonPort) { context.Response.StatusCode = 404; return; }
     if (path.StartsWithSegments("/a") || path.StartsWithSegments("/m") || path.StartsWithSegments("/s"))
     {
         context.Response.Headers.AccessControlAllowOrigin = "*";
@@ -96,17 +94,12 @@ app.UseRouting(); // Resolver a rota após expandir o alias curto.
 app.UseRateLimiter();
 app.MapGet("/", () => Results.Redirect("/admin/"));
 app.MapGet("/admin/", () => Results.Content(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "LibraryPanel.html")), "text/html; charset=utf-8"));
-app.MapGet("/ca.crt", () => localHttps is null ? Results.NotFound() : Results.File(localHttps.Root.RawData, "application/x-x509-ca-cert", "C4K-Local-Root-CA.crt"));
 app.MapGet("/admin/api/status", () => new
 {
     manifestUrl = ManifestUrl(), desktopManifestUrl = DesktopManifestUrl(),
     installUrl = $"stremio:///addons?addon={Uri.EscapeDataString(DesktopManifestUrl())}",
     browserInstallUrl = $"https://web.stremio.com/#/addons?addon={Uri.EscapeDataString(ManifestUrl())}",
     publicUrl, mediaRoot = files.Root, media = repository.Media(), events = repository.Events(),
-    localHttps = localHttps is null ? null : new { baseUrl = localHttps.BaseUrl, certificateUrl = localHttps.HttpBase(addonPort) + "/ca.crt",
-        expiresAt = localHttps.Certificate.NotAfter.ToUniversalTime().ToString("O"),
-        fingerprint = Convert.ToHexString(SHA256.HashData(localHttps.Root.RawData)),
-        httpManifestUrl = $"{localHttps.HttpBase(addonPort)}/{settings.AddonToken[..10]}/manifest.json" },
     imports = repository.Imports(),
     automation = automation.Public(), downloads = repository.Downloads(), watchedPlans = repository.WatchedPlans(), connectionStatus = downloader.ConnectionStatus,
     warning = "Adicionar uma série prepara os dois primeiros episódios lançados. Remover pelo painel apaga o vídeo físico."
@@ -185,11 +178,10 @@ app.MapPost("/admin/api/network", (NetworkSettings input) =>
 {
     if (Environment.GetEnvironmentVariable("C4K_PUBLIC_URL") is not null)
         return Results.Conflict(new { error = "Endereço definido no ambiente. Remova C4K_PUBLIC_URL antes de alterar pelo painel." });
-    if (!Uri.TryCreate(input.PublicUrl, UriKind.Absolute, out var address) ||
-        !(address.Scheme == "http" && address.Port == addonPort || address.Scheme == "https" && localHttps is not null && address.Port == localHttps.Options.Port && localHttps.Certificate.MatchesHostname(address.Host, false, false)) ||
-        address.AbsolutePath != "/" || address.Query != "" || address.Fragment != "" || address.UserInfo != "" ||
+    if (!Uri.TryCreate(input.PublicUrl, UriKind.Absolute, out var address) || address.Scheme != "http" ||
+        address.Port != addonPort || address.AbsolutePath != "/" || address.Query != "" || address.Fragment != "" || address.UserInfo != "" ||
         !IPAddress.TryParse(address.Host, out var ip) || !NetworkInterface.GetAllNetworkInterfaces().SelectMany(n => n.GetIPProperties().UnicastAddresses).Any(a => a.Address.Equals(ip)))
-        return Results.BadRequest(new { error = "Use o IP deste PC e uma porta HTTP/HTTPS configurada; HTTPS exige certificado válido para o IP." });
+        return Results.BadRequest(new { error = "Use http://IP-deste-PC:porta, sem caminho, na porta atual do addon." });
     lock (pairingGate)
     {
         var replacement = new NetworkSettings(address.GetLeftPart(UriPartial.Authority));
@@ -266,15 +258,14 @@ addon.MapGet("/meta/{type}/{id}.json", (string type, string id) =>
         poster = MediaNames.Poster(id), posterShape = "poster",
         videos = items.Select(m => new { id = m.VideoId, title = m.Title, season = m.Season, episode = m.Episode }).ToArray() } });
 });
-addon.MapGet("/stream/{type}/{id}.json", (string type, string id, HttpRequest request) =>
+addon.MapGet("/stream/{type}/{id}.json", (string type, string id) =>
 {
-    var mediaUrl = localHttps is null ? publicUrl : request.IsHttps ? localHttps.BaseUrl : localHttps.HttpBase(addonPort);
     var item = repository.Media().FirstOrDefault(m => m.Type == type && m.VideoId == id && files.Resolve(m.FileName) is not null);
     return item is null ? Results.Json(new { streams = Array.Empty<object>() }) : Results.Json(new
     {
-        streams = new[] { new { name = "C4K — disponível no PC", url = $"{mediaUrl}/m/{settings.MediaToken}/{item.Id}",
+        streams = new[] { new { name = "C4K — disponível no PC", url = $"{publicUrl}/m/{settings.MediaToken}/{item.Id}",
             subtitles = repository.Subtitle(item.Id) is { } subtitle && files.ResolveSubtitle(subtitle.FileName) is not null
-                ? new[] { new { id = item.Id + "-local", url = $"{mediaUrl}/s/{settings.MediaToken}/{item.Id}{Path.GetExtension(subtitle.FileName)}", lang = subtitle.Language } }
+                ? new[] { new { id = item.Id + "-local", url = $"{publicUrl}/s/{settings.MediaToken}/{item.Id}{Path.GetExtension(subtitle.FileName)}", lang = subtitle.Language } }
                 : [],
             behaviorHints = new { notWebReady = true, bingeGroup = "c4k-local", filename = Path.GetFileName(item.FileName), videoSize = new FileInfo(files.Resolve(item.FileName)!).Length } } }
     });
