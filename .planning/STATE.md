@@ -4,10 +4,10 @@ current_phase: 3
 current_phase_name: Preparar episódios a partir de fontes
 status: in_progress
 stopped_at: Tela de gestão /list publicada, separada da automação; HTTP e dados preservados.
-last_updated: "2026-11-16T14:58:34.375Z"
+last_updated: "2026-11-16T23:39:05.891Z"
 last_activity: 2026-11-16
 last_activity_desc: biblioteca local 0.2 entregue; 65 checks HTTP e 7 de recuperação aprovados.
-state_head: 32213b14debeb6942e5ab89342b3209c2e9f6280
+state_head: 436922e816a6bf07714d375ae552a5b44cddfc48
 progress:
   total_phases: 6
   completed_phases: 0
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-11-16)
 Phase: 3 of 6 (Preparar episódios a partir de fontes)
 Plan: 1 of 1 in current phase
 Status: Automação inicial implementada; UAT autenticado e demais critérios amplos da fase pendentes
-Last activity: 2026-11-16 — 0.3 publicada; 24 checks de lógica/arquivos, 46 HTTP e DOM Edge aprovados. Manifest e mídia original preservados.
+Last activity: 2026-11-16 - Completed quick task 261116-slz: pastas de incompletos e completos configuráveis no painel.
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -96,6 +96,7 @@ Usuário confirmou reprodução básica na TCL. Duração, seek, áudio/legendas
 | 261116-d9k | Restaurar acentos nos documentos e configurar UTF-8 | 2026-11-16 | 256aa91 | [261116-d9k-corrigir-acentuacao-e-preservar-utf-8-no](./quick/261116-d9k-corrigir-acentuacao-e-preservar-utf-8-no/) |
 | 261116-ey7 | Criar URL curta de teste local para a TV | 2026-11-16 | dad03f0 | [261116-ey7-criar-url-curta-privada-para-teste-local](./quick/261116-ey7-criar-url-curta-privada-para-teste-local/) |
 | 261116-gic | Renomear projeto para C4K e preservar dados locais | 2026-11-16 | 32213b1 | [261116-gic-renomear-projeto-para-c4k-e-preservar-da](./quick/261116-gic-renomear-projeto-para-c4k-e-preservar-da/) |
+| 261116-slz | Configurar pastas de incompletos e completos pelo painel | 2026-11-16 | 436922e | [261116-slz-configurar-diretorios-de-downloads-incom](./quick/261116-slz-configurar-diretorios-de-downloads-incom/) |
 
 ## Session Continuity
 
