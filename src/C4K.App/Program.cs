@@ -248,12 +248,14 @@ addon.MapGet("/catalog/{type}/{id}.json", (string type, string id) => Results.Js
 {
     // Manter o catálogo já salvo nos clientes que fizeram o teste anterior.
     metas = id is not ("c4k-ready" or "casa4k-ready") ? [] : repository.Media().Where(m => m.Type == type && files.Resolve(m.FileName) is not null)
-        .DistinctBy(m => m.MetaId).Select(m => new { id = m.MetaId, type = m.Type, name = m.Title }).ToArray()
+        .DistinctBy(m => m.MetaId).Select(m => new { id = m.MetaId, type = m.Type, name = m.Title,
+            poster = MediaNames.Poster(m.MetaId), posterShape = "poster" }).ToArray()
 }));
 addon.MapGet("/meta/{type}/{id}.json", (string type, string id) =>
 {
     var items = repository.Media().Where(m => m.Type == type && m.MetaId == id && files.Resolve(m.FileName) is not null).ToList();
     return items.Count == 0 ? Results.NotFound() : Results.Json(new { meta = new { id, type, name = items[0].Title,
+        poster = MediaNames.Poster(id), posterShape = "poster",
         videos = items.Select(m => new { id = m.VideoId, title = m.Title, season = m.Season, episode = m.Episode }).ToArray() } });
 });
 addon.MapGet("/stream/{type}/{id}.json", (string type, string id) =>

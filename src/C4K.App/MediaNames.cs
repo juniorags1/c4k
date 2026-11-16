@@ -5,6 +5,8 @@ namespace C4K;
 
 public static class MediaNames
 {
+    public static string? Poster(string metaId) => Regex.IsMatch(metaId, @"^tt\d{5,12}$", RegexOptions.CultureInvariant)
+        ? $"https://images.metahub.space/poster/medium/{metaId}/img" : null;
     public static string Display(DownloadRequest request)
     {
         var title = request.Title ?? request.VideoId.Split(':')[0];

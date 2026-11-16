@@ -25,3 +25,14 @@ Check ((Request 'GET' $status.manifestUrl).Status -eq 404 -and (Request 'GET' $n
 Stop-Process -Id $appProcess.Id; $appProcess.WaitForExit(); $appProcess = Start-App; Wait-App
 $state = (Request 'GET' "$admin/admin/api/status" $null $auth).Body | ConvertFrom-Json
 Check ($state.downloads.Count -eq 1 -and $state.automation.hasPassword -and $state.media.Count -eq 2) 'Configuração, fila e mídia persistem'
+$posterPrefix = $state.manifestUrl.Replace('/manifest.json','')
+$posterMovie = @{type='movie';metaId='tt12300742';videoId='tt12300742';title='Bugonia (2025)';fileName='direct.mp4';season=$null;episode=$null}
+Check ((Request 'POST' "$admin/admin/api/media" $posterMovie $auth).Status -eq 200) 'Cadastro de filme com IMDb para capa'
+$posterCatalog = (Request 'GET' "$posterPrefix/catalog/movie/c4k-ready.json").Body | ConvertFrom-Json
+$canonical = $posterCatalog.metas | Where-Object id -eq 'tt12300742'
+Check ($canonical.poster -eq 'https://images.metahub.space/poster/medium/tt12300742/img' -and $canonical.posterShape -eq 'poster') 'Catálogo anuncia capa HTTPS da obra'
+Check ($null -eq ($posterCatalog.metas | Where-Object id -eq 'c4k:direct').poster) 'ID local não recebe capa de outra obra'
+$posterSeries = @{type='series';metaId='tt1234567';videoId='tt1234567:1:2';title='Serie fixture';fileName='direct.mp4';season=1;episode=2}
+Check ((Request 'POST' "$admin/admin/api/media" $posterSeries $auth).Status -eq 200) 'Cadastro de episódio para capa da série'
+$seriesMeta = (Request 'GET' "$posterPrefix/meta/series/tt1234567.json").Body | ConvertFrom-Json
+Check ($seriesMeta.meta.poster -eq 'https://images.metahub.space/poster/medium/tt1234567/img' -and $seriesMeta.meta.videos[0].episode -eq 2) 'Detalhes usam capa da série e preservam episódio'

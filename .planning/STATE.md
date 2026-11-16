@@ -84,3 +84,8 @@ Usuário confirmou reprodução básica na TCL. Duração, seek, áudio/legendas
 Last session: 2026-11-16
 Stopped at: C4K 0.2 em execução, com importação local e legendas. Fase 3 ainda não iniciada; UAT detalhado permanece pendente.
 Resume file: None
+
+
+### Quick task 2026-11-16: capas-addon
+
+Capas HTTPS publicadas para IMDb no catalogo e detalhes. 51 checks HTTP aprovados; manifest preservado. Catalogo real inclui Bugonia (2025) concluido, com poster, e o video local anterior. Reproducao desse novo filme na TV ainda nao confirmada. Ver quick/20261116-capas-addon/SUMMARY.md.
