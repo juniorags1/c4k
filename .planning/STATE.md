@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Preparar episódios a partir de fontes
 status: in_progress
-stopped_at: Watched prepara dois sucessores; versão publicada, aguarda marcação real de episódio no Stremio.
+stopped_at: HTTPS local configurado e validado no Windows; CA pública pronta, aguardando instalação/aceitação na TCL, sem menu encontrado pelo usuário.
 last_updated: "2026-11-16T14:58:34.375Z"
 last_activity: 2026-11-16
 last_activity_desc: biblioteca local 0.2 entregue; 65 checks HTTP e 7 de recuperação aprovados.
@@ -42,6 +42,8 @@ Total plans completed: 1. Sem métricas de execução disponíveis.
 
 ### Decisions
 
+- Usuário autorizou certificado local sem domínio/túnel. HTTPS 48242 configurado, mesmo manifest para PC/TV e HTTP 48240 preservado. Certificado confiado no Windows, privado não exportável; CA pública disponível no painel e /ca.crt. 54 testes de lógica, 53 HTTP, 14 HTTPS e Edge real aprovados. TV ainda não validada: usuário não encontrou menu de certificado. Ver quick/20261116-https-local/ e docs/HTTPS-LOCAL.md.
+
 - A pedido do usuário, cancelado teste The Rings of Power (tt7631058): uma tarefa removida do qBittorrent sem apagar arquivos, registro Cancelled oculto da fila e acompanhamento automático removido. Dois filmes preservados. Ver quick/20261116-cancelar-serie-teste/.
 
 - libraryAdd de série agora prepara dois primeiros episódios regulares lançados, normalmente T01E01/T01E02. Plano persistente inicial pode ser substituído por watched explícito; repetição de adição não retrocede progresso conhecido. 54 testes de lógica e 53 HTTP aprovados; executável publicado preservando dados. Ver quick/20261116-library-primeiros-dois/.
@@ -79,6 +81,7 @@ Usuário confirmou reprodução básica na TCL. Duração, seek, áudio/legendas
 
 | # | Description | Date | Commit | Directory |
 |---|---|---|---|---|
+| 20261116-https-local | Preparar certificado e HTTPS local para teste PC/TV | 2026-11-16 | ver histórico Git | [https-local](./quick/20261116-https-local/) |
 | 20261116-library-primeiros-dois | Baixar primeiros dois episódios ao adicionar série à biblioteca | 2026-11-16 | ver histórico Git | [library-primeiros-dois](./quick/20261116-library-primeiros-dois/) |
 | 20261116-watched-proximos-dois | Preparar próximos dois episódios ao marcar Watched | 2026-11-16 | ver histórico Git | [watched-proximos-dois](./quick/20261116-watched-proximos-dois/) |
 | 20261116-recadastro-filme | Substituir cadastro de teste por IMDb usando o mesmo vídeo em done | 2026-11-16 | ver histórico Git | [recadastro-filme](./quick/20261116-recadastro-filme/) |

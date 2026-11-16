@@ -34,14 +34,15 @@ public sealed record AppSettings(string AddonToken, string MediaToken)
         return settings;
     }
 
-    public static string PublicUrl(int port, string? saved = null)
+    public static string PublicUrl(int port, string? saved = null, int? httpsPort = null)
     {
         var configured = Environment.GetEnvironmentVariable("C4K_PUBLIC_URL") ?? saved;
         if (!string.IsNullOrWhiteSpace(configured))
         {
-            if (!Uri.TryCreate(configured, UriKind.Absolute, out var uri) || uri.Scheme != "http" ||
-                uri.AbsolutePath != "/" || uri.Query != "" || uri.Fragment != "" || uri.UserInfo != "" || uri.Port != port)
-                throw new InvalidOperationException("C4K_PUBLIC_URL deve ser http://IP-DO-PC:porta, sem caminho ou credenciais.");
+            if (!Uri.TryCreate(configured, UriKind.Absolute, out var uri) ||
+                !(uri.Scheme == "http" && uri.Port == port || uri.Scheme == "https" && uri.Port == httpsPort) ||
+                uri.AbsolutePath != "/" || uri.Query != "" || uri.Fragment != "" || uri.UserInfo != "")
+                throw new InvalidOperationException("C4K_PUBLIC_URL deve usar uma porta HTTP/HTTPS configurada, sem caminho ou credenciais.");
             return uri.GetLeftPart(UriPartial.Authority);
         }
         var address = NetworkInterface.GetAllNetworkInterfaces()
