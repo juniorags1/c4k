@@ -4,10 +4,10 @@ current_phase: 1
 current_phase_name: Provar addon e eventos na TCL C6K
 status: in_progress
 stopped_at: C4K renomeado e iniciado; usuário confirmou reprodução básica na TV; demais critérios formais pendentes.
-last_updated: "2026-11-16T13:46:47.236Z"
+last_updated: "2026-11-16T14:58:34.375Z"
 last_activity: 2026-11-16
 last_activity_desc: usuário confirmou teste na TV; projeto renomeado para C4K, dados migrados e 33 checks aprovados.
-state_head: dad03f0c7f2540c6f4218dc841faa0babb668b79
+state_head: 32213b14debeb6942e5ab89342b3209c2e9f6280
 progress:
   total_phases: 6
   completed_phases: 0
@@ -70,6 +70,7 @@ Usuário confirmou reprodução básica na TCL. Duração, seek, áudio/legendas
 | 261116-d16 | Limpar referencias a integracao descartada em toda a documentacao | 2026-11-16 | e8a73e1 | [261116-d16-limpar-referencias-a-integracao-descarta](./quick/261116-d16-limpar-referencias-a-integracao-descarta/) |
 | 261116-d9k | Restaurar acentos nos documentos e configurar UTF-8 | 2026-11-16 | 256aa91 | [261116-d9k-corrigir-acentuacao-e-preservar-utf-8-no](./quick/261116-d9k-corrigir-acentuacao-e-preservar-utf-8-no/) |
 | 261116-ey7 | Criar URL curta de teste local para a TV | 2026-11-16 | dad03f0 | [261116-ey7-criar-url-curta-privada-para-teste-local](./quick/261116-ey7-criar-url-curta-privada-para-teste-local/) |
+| 261116-gic | Renomear projeto para C4K e preservar dados locais | 2026-11-16 | 32213b1 | [261116-gic-renomear-projeto-para-c4k-e-preservar-da](./quick/261116-gic-renomear-projeto-para-c4k-e-preservar-da/) |
 
 ## Session Continuity
 
