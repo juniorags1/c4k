@@ -2,7 +2,7 @@
 
 ## Project
 
-**Casa4K**
+**C4K**
 
 Addon Stremio e servidor .NET que prepara filmes e episódios no PC para assistir na TCL C6K com Android TV 14. Ao iniciar um episódio, assegura os dois seguintes na fila e publica somente arquivos completos como fontes locais no Stremio. Instalador Windows sem Docker.
 
@@ -49,7 +49,7 @@ Conventions not yet established. Will populate as patterns emerge during develop
 
 ## Architecture
 
-Architecture: [.planning/STREMIO-DESIGN.md](.planning/STREMIO-DESIGN.md). The compatibility host is implemented in src/Casa4K.App; scripts/Smoke-Test.ps1 verifies HTTP contracts. Downloading and episode preloading are not implemented yet.
+Architecture: [.planning/STREMIO-DESIGN.md](.planning/STREMIO-DESIGN.md). The compatibility host is implemented in src/C4K.App; scripts/Smoke-Test.ps1 verifies HTTP contracts. Downloading and episode preloading are not implemented yet.
 <!-- GSD:architecture-end -->
 
 <!-- GSD:skills-start source:skills/ -->

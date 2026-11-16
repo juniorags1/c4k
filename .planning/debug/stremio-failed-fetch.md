@@ -18,8 +18,8 @@ Usuário confirmou erro ao colar manifest, não ao abrir vídeo ou botão. Esper
 
 - HTTP sem proxy: LAN e loopback retornam 200 com CORS e JSON válido.
 - Reproduzido em contexto Edge isolado, carregando web.stremio.com: fetch LAN e loopback falham com permissão negada para address space local/loopback.
-- No mesmo contexto de teste, conceder permissões de rede via CDP transformou a resposta LAN em 200 e manifest local.casa4k.probe. Não foram alteradas permissões do navegador/aplicativo real do usuário.
-- Bug adicional identificado por código oficial: ShellOpenHandler transforma stremio://host em https://host. O botão Casa4K perdia o esquema HTTP. Esse bug não explica sozinho o erro manual relatado.
+- No mesmo contexto de teste, conceder permissões de rede via CDP transformou a resposta LAN em 200 e manifest local.c4k.probe. Não foram alteradas permissões do navegador/aplicativo real do usuário.
+- Bug adicional identificado por código oficial: ShellOpenHandler transforma stremio://host em https://host. O botão C4K perdia o esquema HTTP. Esse bug não explica sozinho o erro manual relatado.
 
 ## Tratativa
 

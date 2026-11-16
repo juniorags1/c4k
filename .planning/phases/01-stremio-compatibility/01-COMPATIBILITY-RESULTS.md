@@ -8,8 +8,8 @@ Host .NET compila e executa no Windows; manifest, mídia HTTP e eventos simulado
 
 ## Evidência física
 
-Ainda não executada. Preencher A1–D2 de 01-VALIDATION.md com vídeo completo e interação real. Não registrar evento simulado como evento da TCL. Nenhuma mídia do usuário cadastrada por padrão.
+Em 2026-11-16, o usuário confirmou que o teste na TV funcionou. Instalação/reprodução básica na TCL têm confirmação de uso real. Duração de 60 minutos, tempos de seek, HDR/áudio/legendas e eventos específicos ainda não foram detalhados; não inferir esses resultados. Um vídeo do usuário já está cadastrado localmente.
 
 ## Decisão de modo
 
-Indefinida até prova real. Host atual captura eventos explícitos; observação de leitura para antecipação fica na fase 4. Sem gate de transporte aprovado, não avançar.
+Reprodução básica na TV confirmada pelo usuário. Modo de eventos permanece indefinido até inspeção dos eventos reais; observação de leitura para antecipação fica na fase 4. Restante dos critérios formais e prova de fontes continuam pendentes.

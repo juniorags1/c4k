@@ -1,4 +1,4 @@
-# Casa4K
+# C4K
 
 ## What This Is
 
@@ -19,7 +19,7 @@ Nenhum requisito implementado ou validado no hardware do usuário.
 - [ ] Validar reprodução local 4K e diagnosticar Wi-Fi, codecs, áudio e legendas.
 - [ ] Manter lista de desejos própria para filmes e episódios e importar fontes fornecidas pelo usuário.
 - [ ] Baixar em segundo plano, recuperar estado após reinício e informar indisponibilidade de fontes.
-- [ ] Publicar arquivos completos como fonte Casa4K e catálogo no Stremio.
+- [ ] Publicar arquivos completos como fonte C4K e catálogo no Stremio.
 - [ ] Instalar, iniciar e atualizar sem Docker ou instalação manual de runtime .NET.
 - [ ] Investigar reprodução local no Stremio e sincronização de sua biblioteca como capacidades distintas.
 

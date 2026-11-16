@@ -1,6 +1,6 @@
 ﻿$ErrorActionPreference = 'Stop'
 $workspace = Split-Path $PSScriptRoot -Parent
-$exe = Join-Path $workspace 'artifacts/win-x64/Casa4K.App.exe'
+$exe = Join-Path $workspace 'artifacts/win-x64/C4K.App.exe'
 $pidFile = Join-Path $workspace 'artifacts/server.pid'
 if (!(Test-Path -LiteralPath $pidFile)) { Write-Output 'Nenhum processo registrado pelo launcher.'; exit 0 }
 $registeredId = [int]([IO.File]::ReadAllText($pidFile))
@@ -10,4 +10,4 @@ if ($process) {
     Stop-Process -Id $registeredId
 }
 Remove-Item -LiteralPath $pidFile
-Write-Output 'Casa4K encerrado.'
+Write-Output 'C4K encerrado.'

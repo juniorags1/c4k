@@ -1,6 +1,6 @@
 # Recomendação vigente é Stremio principal
 
-Usuário escolheu addon Stremio; TV informada TCL C6K Android TV 14, Stremio atual sem build numérica. Casa4K será host .NET que atende addon e vídeo local; qBittorrent nativo prepara arquivos completos. Instalador Windows self-contained, sem Docker.
+Usuário escolheu addon Stremio; TV informada TCL C6K Android TV 14, Stremio atual sem build numérica. C4K será host .NET que atende addon e vídeo local; qBittorrent nativo prepara arquivos completos. Instalador Windows self-contained, sem Docker.
 
 Ao iniciar episódio, manter os dois seguintes preparados, sujeito a fontes e quota. Eventos player/library existem na documentação e no core públicos; não foi comprovada versão Android TV. Se eventos não chegarem, observar consumo HTTP de mídia própria permite modo local com entrada inicial pelo painel. Não detecta com segurança reprodução por outros addons.
 

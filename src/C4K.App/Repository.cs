@@ -1,6 +1,6 @@
 using Microsoft.Data.Sqlite;
 
-namespace Casa4K;
+namespace C4K;
 
 public sealed record MediaItem(string Id, string Type, string MetaId, string VideoId, string Title, string FileName, int? Season, int? Episode);
 public sealed record Activity(long Id, string Resource, string Type, string VideoId, string Action, long? CurrentTime, long? Duration, string? ChangedVideos, string ReceivedAt);
@@ -10,7 +10,7 @@ public sealed class Repository
     private readonly string connectionString;
     public Repository(string directory)
     {
-        connectionString = new SqliteConnectionStringBuilder { DataSource = Path.Combine(directory, "casa4k.db"), DefaultTimeout = 10 }.ToString();
+        connectionString = new SqliteConnectionStringBuilder { DataSource = Path.Combine(directory, "c4k.db"), DefaultTimeout = 10 }.ToString();
         using var db = Open();
         using var command = db.CreateCommand();
         command.CommandText = """

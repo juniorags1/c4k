@@ -1,4 +1,4 @@
-# Casa4K — design do addon Stremio
+# C4K — design do addon Stremio
 
 **Data:** 2026-11-15. **Estado:** proposta implementável, ainda sem teste na TV.
 **Decisão do usuário:** aprofundar o caminho Stremio como cliente principal, com PC servidor e download antecipado dos próximos episódios. Backend .NET; instalador Windows; sem Docker.
@@ -7,11 +7,11 @@
 
 ## 1. Experiência alvo
 
-Instalar Casa4K no PC, escolher disco e perfil, configurar uma fonte e instalar seu addon diretamente no Stremio. O PC exibe endereço LAN e diagnóstico. Na TV, usuário continua navegando no Stremio; arquivos prontos aparecem como opção Casa4K no detalhe normal do episódio e em catálogo próprio de prontos.
+Instalar C4K no PC, escolher disco e perfil, configurar uma fonte e instalar seu addon diretamente no Stremio. O PC exibe endereço LAN e diagnóstico. Na TV, usuário continua navegando no Stremio; arquivos prontos aparecem como opção C4K no detalhe normal do episódio e em catálogo próprio de prontos.
 
 Ao iniciar S01E03, manter S01E04 e S01E05 preparados ou em preparação. Se E04 já existe, não duplicá-lo. Ao iniciar E04, janela passa a E05/E06. Janela padrão proposta de dois episódios, configurável de um a cinco, sujeita a quota global e limite por série. A regra dispara no início, sem esperar atingir percentual assistido.
 
-Primeiro episódio ainda precisa de preparação: adicionar série no painel e indicar início, ou evento de biblioteca quando comprovado. Se usuário assistir inicialmente por outra fonte e os eventos funcionarem, o addon poderá receber o início e preparar os seguintes. Sem eventos, esse cenário não é detectável de modo confiável: preparar primeiro pelo painel e passar a consumir pelo Casa4K.
+Primeiro episódio ainda precisa de preparação: adicionar série no painel e indicar início, ou evento de biblioteca quando comprovado. Se usuário assistir inicialmente por outra fonte e os eventos funcionarem, o addon poderá receber o início e preparar os seguintes. Sem eventos, esse cenário não é detectável de modo confiável: preparar primeiro pelo painel e passar a consumir pelo C4K.
 
 Exemplo: E03 está pronto; E04 baixando; E05 aguardando fonte. Só E03 é anunciado como reproduzível. O painel mostra demais estados; não inserir vídeos falsos de progresso nem travar player aguardando download. Stremio pode precisar reabrir lista de fontes para atualizar; catálogo não é dashboard em tempo real.
 
@@ -19,13 +19,13 @@ Exemplo: E03 está pronto; E04 baixando; E05 aguardando fonte. Só E03 é anunci
 
 O protocolo e o core públicos descrevem player/library; código introduzido em setembro de 2026 torna plausível ouvir atividade sem ler credenciais da conta. Publicação no Android TV do usuário continua desconhecida. Detalhes e links rastreáveis: [STREMIO-SOURCES.md](research/STREMIO-SOURCES.md).
 
-Nenhum resultado desta pesquisa autoriza afirmar que um addon lê todos os addons instalados, recebe a fonte selecionada em outro addon ou reconstrói a biblioteca anterior. Evento de início traz identidade/tempo, não uma fonte reutilizável. Casa4K precisará resolver sua própria fonte.
+Nenhum resultado desta pesquisa autoriza afirmar que um addon lê todos os addons instalados, recebe a fonte selecionada em outro addon ou reconstrói a biblioteca anterior. Evento de início traz identidade/tempo, não uma fonte reutilizável. C4K precisará resolver sua própria fonte.
 
 ## 3. Arquitetura
 
 ```mermaid
 flowchart LR
-    TV[Stremio Google TV] --> A[Addon HTTP do Casa4K]
+    TV[Stremio Google TV] --> A[Addon HTTP do C4K]
     A --> E[Eventos persistentes]
     E --> P[Planejador da janela]
     UI[Painel local] --> P
@@ -43,14 +43,14 @@ flowchart LR
 
 Um único host ASP.NET Core .NET 10 LTS contém addon, painel, media endpoint e workers. SQLite guarda estado. qBittorrent é processo nativo separado controlado via API local. Direct play é prioridade; não há transcodificação própria. Interface Razor Pages evita runtime Node no uso e reduz componentes.
 
-Estrutura proposta: `src/Casa4K.App` (host/endpoints/UI/workers), `src/Casa4K.Core` (políticas/modelos), `src/Casa4K.Infrastructure` (SQLite, HTTP, qBittorrent, disco), `tests/Casa4K.Tests` (políticas e contratos), `installer/` e `docs/`. Começar com esses três projetos; não usar microserviços.
+Estrutura proposta: `src/C4K.App` (host/endpoints/UI/workers), `src/C4K.Core` (políticas/modelos), `src/C4K.Infrastructure` (SQLite, HTTP, qBittorrent, disco), `tests/C4K.Tests` (políticas e contratos), `installer/` e `docs/`. Começar com esses três projetos; não usar microserviços.
 
 ## 4. Gatilhos em ordem de confiança
 
 | Entrada | O que sabemos | Ação permitida |
 |---|---|---|
 | Player start em cliente comprovado | Episódio iniciado/retomado | Assegurar janela N+1/N+2, idempotente |
-| Leitura HTTP de mídia Casa4K | Cliente leu bytes desse arquivo | Inferir consumo local e assegurar janela; não marcar assistido |
+| Leitura HTTP de mídia C4K | Cliente leu bytes desse arquivo | Inferir consumo local e assegurar janela; não marcar assistido |
 | Library add comprovado | Série adicionada depois de instalar addon | Criar monitoramento e aplicar início configurado; sem histórico, não adivinhar episódio atual |
 | Watched com episódios explícitos | Marcação informada pelo usuário/cliente | Atualizar histórico recebido e replanejar; não apagar arquivos |
 | Consulta stream/meta/catalog | Navegação/prefetch possível | Apenas consultar; nunca assumir reprodução ou baixar por padrão |
@@ -77,9 +77,9 @@ Estados de aquisição: `Planned → Resolving → Queued → Downloading → Ve
 Fornecer duas estratégias de `ISourceResolver`:
 
 1. Manual: magnet/torrent autorizado ou associação de arquivos/pacote da temporada. Serve à prova inicial e independe de serviço de busca.
-2. Addon configurado: usuário cadastra URL de manifest e configuração de provedor compatível. Casa4K consulta recurso stream do próximo episódio com timeout, backoff e cache curto. Implementar contrato genérico e fixar um provedor real em teste antes de prometer interoperabilidade.
+2. Addon configurado: usuário cadastra URL de manifest e configuração de provedor compatível. C4K consulta recurso stream do próximo episódio com timeout, backoff e cache curto. Implementar contrato genérico e fixar um provedor real em teste antes de prometer interoperabilidade.
 
-O servidor não herda lista de addons nem chaves da conta Stremio. Credenciais de provedor são configuradas no PC e protegidas; nunca inseridas em URLs de mídia devolvidas à TV. Excluir o próprio Casa4K da lista de provedores para evitar recursão.
+O servidor não herda lista de addons nem chaves da conta Stremio. Credenciais de provedor são configuradas no PC e protegidas; nunca inseridas em URLs de mídia devolvidas à TV. Excluir o próprio C4K da lista de provedores para evitar recursão.
 
 Candidato torrent (`infoHash`, `fileIdx`, trackers permitidos) vira job qBittorrent e seleção explícita de arquivo. Pacote sem mapeamento claro entra em seleção manual; nunca escolher maior arquivo e chamar de próximo episódio. URL HTTP baixável só entra se persistência e autorização forem compatíveis. `externalUrl`, YouTube, DRM, manifest adaptativo ou esquemas desconhecidos não são download suportado no MVP. URLs assinadas podem expirar: resolver de novo, respeitando política e sem loops.
 
@@ -102,7 +102,7 @@ Admin deve usar listener separado em `127.0.0.1:48241`, no mesmo host, com valid
 | Endpoint | Função |
 |---|---|
 | `/a/{addonToken}/manifest.json` | Manifest privado e recursos suportados |
-| `/a/{addonToken}/catalog/series/casa4k-ready.json` | Séries com episódios locais prontos |
+| `/a/{addonToken}/catalog/series/c4k-ready.json` | Séries com episódios locais prontos |
 | `/a/{addonToken}/meta/series/{id}.json` | Metadados locais/cached e episódios |
 | `/a/{addonToken}/stream/series/{videoId}.json` | URLs apenas de Ready |
 | `/a/{addonToken}/player/series/{videoId}/{extra}.json` | Entrada de atividade, se cliente suportar |
@@ -113,7 +113,7 @@ Admin deve usar listener separado em `127.0.0.1:48241`, no mesmo host, com valid
 
 Recursos de filme usam type movie e têm preparação única, sem janela. Manifest declara filtros de tipo/ID explícitos. Eventos não suportados pelo cliente são diagnosticados, não mascarados. JSON válido nos endpoints de addon, CORS conforme protocolo. Admin não compartilha política CORS aberta.
 
-Stream de Ready retorna `url` LAN, nome Casa4K e identificação de qualidade/tamanho. `behaviorHints.bingeGroup` estável por perfil de qualidade busca continuidade no próprio addon; não garante seleção contra todos os addons e configurações. `notWebReady` e filename/hash/size conforme protocolo ajudam player/legendas. Nunca devolver `infoHash` como opção Casa4K pronta: isso transferiria aquisição à TV.
+Stream de Ready retorna `url` LAN, nome C4K e identificação de qualidade/tamanho. `behaviorHints.bingeGroup` estável por perfil de qualidade busca continuidade no próprio addon; não garante seleção contra todos os addons e configurações. `notWebReady` e filename/hash/size conforme protocolo ajudam player/legendas. Nunca devolver `infoHash` como opção C4K pronta: isso transferiria aquisição à TV.
 
 Range deve responder 206/Content-Range correto, 416 para intervalo inválido, HEAD sem corpo, MIME/Content-Length corretos, ETag estável e cancelamento. ASP.NET Core PhysicalFile com enableRangeProcessing é base; testes de integração cobrem autenticação, suffix/open-ended ranges e seek. Não carregar vídeo inteiro em RAM. TV referencia IP LAN do PC, jamais localhost.
 
@@ -143,13 +143,13 @@ Wizard: pasta → quota/perfil → detectar qBittorrent → configurar provedor/
 
 Gate A — transporte e reprodução: instalar manifest privado; filme/episódio de amostra autorizado completo; tocar na TV, seek, áudio, legendas e 4K. Registrar modelo da TV, versão Stremio, player e conectividade. Sessão de 60 minutos sem rebuffer após início é meta, não resultado existente.
 
-Gate B — eventos: addon diretamente instalado e endpoint diagnosticável; iniciar por fonte Casa4K e outra fonte, pausar, retomar, seek, trocar episódio, encerrar, add/remove library e watched/unwatched. Registrar recebimento e campos, testar duração zero e app encerrado abruptamente. Provar também se eventos de player externo chegam. Simulações HTTP não aprovam compatibilidade Android TV.
+Gate B — eventos: addon diretamente instalado e endpoint diagnosticável; iniciar por fonte C4K e outra fonte, pausar, retomar, seek, trocar episódio, encerrar, add/remove library e watched/unwatched. Registrar recebimento e campos, testar duração zero e app encerrado abruptamente. Provar também se eventos de player externo chegam. Simulações HTTP não aprovam compatibilidade Android TV.
 
 Gate C — fallback: desabilitar eventos; consumir mídia local e verificar criação única de N+1/N+2. HEAD e consulta stream não iniciam jobs. Probes podem produzir preparação antecipada limitada; registrar margem de falsos positivos.
 
 Gate D — fonte: consultar um provedor escolhido ou torrent autorizado de teste, mapear próximo episódio e baixar com qBittorrent; evento sozinho não passa este gate. Validar pacote, fonte indisponível e retomada.
 
-Decisão: A+B+D aprovados → experiência automática completa proposta. A+C+D aprovados → experiência automática ao assistir pelo Casa4K, com entrada manual inicial. A reprovado → não avançar com addon local sem resolver transporte/player. B reprovado não autoriza prometer monitorar atividade em outras fontes.
+Decisão: A+B+D aprovados → experiência automática completa proposta. A+C+D aprovados → experiência automática ao assistir pelo C4K, com entrada manual inicial. A reprovado → não avançar com addon local sem resolver transporte/player. B reprovado não autoriza prometer monitorar atividade em outras fontes.
 
 Testes seguintes: dedupe/reinício, fim de temporada/especiais, limite de disco, múltiplas séries, fonte expirada, tokens revogados, arquivos parciais, path traversal, HTTP redirects/SSRF, atualização em Windows limpo e repetição desejo→download→TV. Testes de acesso externo não exigem abrir rede do usuário.
 

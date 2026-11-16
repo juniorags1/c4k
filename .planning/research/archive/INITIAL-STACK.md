@@ -11,7 +11,7 @@ Pesquisa em 2026-11-15. Versões de terceiros serão fixadas por release verific
 | Persistência | SQLite + EF Core 10 | Estado local transacional e migrações | Alta |
 | Trabalho assíncrono | BackgroundService com jobs persistidos | Poucos downloads; não exige broker ou serviço externo | Alta |
 | Downloads torrent | qBittorrent nativo, Web API 5.x compatível | Pausa, retomada, progresso e estado consolidados | Alta documental; versão a fixar |
-| Biblioteca/TV | Casa4K no Windows + Stremio na TV | Arquivos locais via addon | TV a validar |
+| Biblioteca/TV | C4K no Windows + Stremio na TV | Arquivos locais via addon | TV a validar |
 | Instalador | Inno Setup, versão estável a fixar | Atalhos, desinstalação e coordenação de processos | Alta |
 | Stremio | Adaptador HTTP implementado em .NET | Protocolo JSON pode ser atendido sem SDK Node | Média; rede/cliente a provar |
 

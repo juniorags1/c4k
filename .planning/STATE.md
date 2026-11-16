@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 current_phase: 1
 current_phase_name: Provar addon e eventos na TCL C6K
 status: in_progress
-stopped_at: Host da fase 1 implementado e iniciado; aguardando vídeo completo e testes reais na TCL.
+stopped_at: C4K renomeado e iniciado; usuário confirmou reprodução básica na TV; demais critérios formais pendentes.
 last_updated: "2026-11-16T13:46:47.236Z"
 last_activity: 2026-11-16
-last_activity_desc: host .NET iniciado, build e 24 checks HTTP aprovados em desenvolvimento e publicação self-contained; validação física pendente.
+last_activity_desc: usuário confirmou teste na TV; projeto renomeado para C4K, dados migrados e 33 checks aprovados.
 state_head: dad03f0c7f2540c6f4218dc841faa0babb668b79
 progress:
   total_phases: 6
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-11-15)
 Phase: 1 of 6 (Provar addon e eventos na TCL C6K)
 Plan: 1 of 1 in current phase
 Status: Awaiting physical compatibility verification
-Last activity: 2026-11-16 — host .NET iniciado, build e testes HTTP aprovados; mídia real e prova na TV pendentes.
+Last activity: 2026-11-16 — usuário confirmou teste na TV; C4K renomeado, migrado e iniciado com 33 checks HTTP aprovados.
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -42,10 +42,12 @@ Total plans completed: 0. Sem métricas de execução disponíveis.
 
 ### Decisions
 
+- Usuário confirmou que o teste na TV funcionou e pediu nome C4K. Solução, código, executável e painel renomeados; dados e tokens migrados com o mesmo manifest. Alias do catálogo anterior mantém compatibilidade.
+
 - Usuário pediu elaboração durante ausência: investigação inline e premissas revisáveis, sem entrevista bloqueante.
 - Usuário escolheu addon Stremio principal; host .NET 10 LTS serve mídia, qBittorrent baixa.
 - TV confirmada: TCL C6K Android TV 14, Stremio atual sem build exata. Manter fonte manual e addon configurável.
-- Eventos player/library têm documentação e código públicos; prova na TV vem primeiro. Fallback por consumo HTTP só cobre mídia servida pelo Casa4K.
+- Eventos player/library têm documentação e código públicos; prova na TV vem primeiro. Fallback por consumo HTTP só cobre mídia servida pelo C4K.
 - Janela padrão proposta de dois episódios. Evento não informa origem da mídia; resolvedor de fontes separado.
 - Execução por usuário/início no login proposta; sem exigência presumida de serviço antes do login.
 - Em 2026-11-16 usuário autorizou iniciar implementação. Host da fase 1 entregue; não avançar à fase 2 antes da prova de compatibilidade na TV.
@@ -58,7 +60,7 @@ Informar vídeo completo para teste e build/player Stremio; executar testes A1�
 
 Instalação manual do manifest no Stremio Windows reportou Failed to fetch. Reprodução isolada no Edge identificou bloqueio de permissão de rede local; ao conceder permissão no contexto de teste, manifest respondeu 200. Painel atualizado com instalação pelo navegador e links que preservam HTTP; 26 checks aprovados. Reteste no cliente do usuário pendente; ver .planning/debug/stremio-failed-fetch.md.
 
-Ferramenta de prova pronta; validação física exige interação na TCL e mídia completa. Nenhum requisito físico concluído. Sem downloader/antecipação nesta entrega.
+Usuário confirmou reprodução básica na TCL. Duração, seek, áudio/legendas e eventos específicos não foram detalhados; critérios formais restantes continuam pendentes. Sem downloader/antecipação nesta entrega.
 
 ## Quick Tasks Completed
 

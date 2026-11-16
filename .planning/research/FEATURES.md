@@ -1,6 +1,6 @@
 # Funcionalidades vigentes
 
-Essenciais: fonte Casa4K no detalhe Stremio, catálogo Ready, reprodução HTTP com seek, pareamento local, painel de preparação, fonte manual e addon configurável, jobs recuperáveis, janela de próximos episódios, quota e instalador.
+Essenciais: fonte C4K no detalhe Stremio, catálogo Ready, reprodução HTTP com seek, pareamento local, painel de preparação, fonte manual e addon configurável, jobs recuperáveis, janela de próximos episódios, quota e instalador.
 
 Padrão proposto: preparar dois episódios adiante ao iniciar atual; janela configurável de um a cinco e limite global. Eventos player/library são preferidos se comprovados no cliente; consumo HTTP próprio é fallback de confiança limitada. Não marcar assistido por bytes enviados.
 

@@ -15,7 +15,7 @@ $addonPort = Free-Port
 do { $adminPort = Free-Port } while ($adminPort -eq $addonPort)
 $addon = "http://127.0.0.1:$addonPort"
 $admin = "http://127.0.0.1:$adminPort"
-$variables = @{ CASA4K_DATA_DIR=$runDir; CASA4K_MEDIA_ROOT=$mediaDir; CASA4K_ADDON_PORT="$addonPort"; CASA4K_ADMIN_PORT="$adminPort"; CASA4K_PUBLIC_URL=$addon }
+$variables = @{ C4K_DATA_DIR=$runDir; C4K_MEDIA_ROOT=$mediaDir; C4K_ADDON_PORT="$addonPort"; C4K_ADMIN_PORT="$adminPort"; C4K_PUBLIC_URL=$addon }
 $previous = @{}
 foreach($name in $variables.Keys) { $previous[$name] = [Environment]::GetEnvironmentVariable($name); [Environment]::SetEnvironmentVariable($name, $variables[$name]) }
 $handler = [Net.Http.HttpClientHandler]::new()
@@ -41,11 +41,11 @@ function Request($method, $url, $body=$null, $headers=@{}) {
 }
 function Start-App {
     if($Published) {
-        $exe = Join-Path $workspace 'artifacts/win-x64/Casa4K.App.exe'
+        $exe = Join-Path $workspace 'artifacts/win-x64/C4K.App.exe'
         if(!(Test-Path -LiteralPath $exe)) { throw 'Execute dotnet publish antes do teste -Published.' }
         return Start-Process -FilePath $exe -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $runDir 'stdout.txt') -RedirectStandardError (Join-Path $runDir 'stderr.txt')
     }
-    $dll = Join-Path $workspace 'src/Casa4K.App/bin/Release/net10.0/Casa4K.App.dll'
+    $dll = Join-Path $workspace 'src/C4K.App/bin/Release/net10.0/C4K.App.dll'
     return Start-Process -FilePath 'dotnet' -ArgumentList ('"' + $dll + '"') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $runDir 'stdout.txt') -RedirectStandardError (Join-Path $runDir 'stderr.txt')
 }
 function Wait-App {
@@ -59,11 +59,13 @@ function Wait-App {
 $appProcess = $null
 try {
     $appProcess = Start-App; Wait-App
-    $auth = @{ 'X-Casa4K-Admin'='1' }
+    $auth = @{ 'X-C4K-Admin'='1' }
     Check ((Request 'GET' "$admin/admin/").Status -eq 200) 'Painel loopback'
+    $panel = Request 'GET' "$admin/admin/"
+    Check ($panel.Body.Contains('<h1>C4K</h1>') -and $panel.Body.Contains('X-C4K-Admin')) 'Painel e autenticação usam C4K'
     Check ((Request 'GET' "$addon/admin/").Status -eq 404) 'Admin não atende na porta LAN'
     Check ((Request 'GET' "$admin/admin/api/status").Status -eq 403) 'Admin exige header não simples'
-    Check ((Request 'GET' "$admin/admin/api/status" $null @{ 'X-Casa4K-Admin'='1'; Origin='https://invalid.example' }).Status -eq 403) 'Admin recusa origem externa'
+    Check ((Request 'GET' "$admin/admin/api/status" $null @{ 'X-C4K-Admin'='1'; Origin='https://invalid.example' }).Status -eq 403) 'Admin recusa origem externa'
     Check ((Request 'GET' "$admin/admin/" $null @{ Host='invalid.example' }).Status -eq 404) 'Admin recusa DNS rebinding por Host'
     $status = (Request 'GET' "$admin/admin/api/status" $null $auth).Body | ConvertFrom-Json
     Check ($status.installUrl.StartsWith('stremio:///addons?addon=') -and [Uri]::UnescapeDataString($status.installUrl.Substring('stremio:///addons?addon='.Length)) -eq $status.manifestUrl) 'Link Stremio preserva esquema HTTP explícito'
@@ -84,8 +86,12 @@ try {
     Check ((Request 'POST' "$admin/admin/api/media" $item $auth).Status -eq 200) 'Cadastro persistido'
     $item.fileName = '../outside.mp4'
     Check ((Request 'POST' "$admin/admin/api/media" $item $auth).Status -eq 400) 'Traversal rejeitado'
-    $catalog = (Request 'GET' "$prefix/catalog/movie/casa4k-ready.json").Body | ConvertFrom-Json
+    $catalog = (Request 'GET' "$prefix/catalog/movie/c4k-ready.json").Body | ConvertFrom-Json
     Check ($catalog.metas.Count -eq 1) 'Catálogo contém arquivo local'
+    $legacyCatalog = (Request 'GET' "$prefix/catalog/movie/casa4k-ready.json").Body | ConvertFrom-Json
+    Check ($legacyCatalog.metas.Count -eq 1) 'Catálogo salvo antes da renomeação continua válido'
+    $manifestBody = $manifest.Body | ConvertFrom-Json
+    Check ($manifestBody.name.StartsWith('C4K') -and $manifestBody.id -eq 'local.c4k.probe') 'Manifest apresenta identidade C4K'
     $stream = (Request 'GET' "$prefix/stream/movie/c4k:sample.json").Body | ConvertFrom-Json
     $url = $stream.streams[0].url
     $range = Request 'GET' $url $null @{ Range='bytes=10-19' }

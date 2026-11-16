@@ -13,7 +13,7 @@ Na execução, criar host .NET mínimo com manifest privado, mídia completa aut
 | A3 | Reproduzir arquivo e fazer três seeks | Range correto, recuperação até cinco segundos | Pendente |
 | A4 | Reproduzir 4K por 60 minutos com áudio/legendas usuais | Zero rebuffer após início como meta, codec/HDR registrados | Pendente |
 | A5 | Cortar WAN mantendo LAN | Separar leitura de mídia de catálogo/auth/cache | Pendente |
-| B1 | Start/pause/resume/seek/stop pela fonte Casa4K | Eventos recebidos ou ausência e campos | Pendente |
+| B1 | Start/pause/resume/seek/stop pela fonte C4K | Eventos recebidos ou ausência e campos | Pendente |
 | B2 | Repetir por outra fonte | Confirmar escopo de eventos entre addons | Pendente |
 | B3 | Add/remove library e watched/unwatched | IDs/ações recebidos, sem supor histórico anterior | Pendente |
 | B4 | Encerrar app abruptamente e PC indisponível | Ausência de stop/replay e recuperação declarada | Pendente |

@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/C4K.App/C4K.App.csproj" />
+  </Folder>
+</Solution>

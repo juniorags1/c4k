@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text.Json;
 
-namespace Casa4K;
+namespace C4K;
 
 public sealed record AppSettings(string AddonToken, string MediaToken)
 {
@@ -29,12 +29,12 @@ public sealed record AppSettings(string AddonToken, string MediaToken)
 
     public static string PublicUrl(int port)
     {
-        var configured = Environment.GetEnvironmentVariable("CASA4K_PUBLIC_URL");
+        var configured = Environment.GetEnvironmentVariable("C4K_PUBLIC_URL");
         if (!string.IsNullOrWhiteSpace(configured))
         {
             if (!Uri.TryCreate(configured, UriKind.Absolute, out var uri) || uri.Scheme != "http" ||
                 uri.AbsolutePath != "/" || uri.Query != "" || uri.Fragment != "" || uri.UserInfo != "" || uri.Port != port)
-                throw new InvalidOperationException("CASA4K_PUBLIC_URL deve ser http://IP-DO-PC:porta, sem caminho ou credenciais.");
+                throw new InvalidOperationException("C4K_PUBLIC_URL deve ser http://IP-DO-PC:porta, sem caminho ou credenciais.");
             return uri.GetLeftPart(UriPartial.Authority);
         }
         var address = NetworkInterface.GetAllNetworkInterfaces()

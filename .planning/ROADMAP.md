@@ -1,4 +1,4 @@
-# Roadmap: Casa4K é addon Stremio
+# Roadmap: C4K é addon Stremio
 
 ## Overview
 
@@ -7,7 +7,7 @@ Milestone v1: PC prepara próximos episódios; Stremio da TCL C6K Android TV 14 
 ## Phases
 
 - [ ] **Phase 1: Provar addon e eventos na TCL C6K** é Comprovar reprodução LAN e estabelecer modo de antecipação realmente suportado.
-- [ ] **Phase 2: Assistir arquivos prontos pelo Casa4K** é Importar arquivo e assistir pela fonte Casa4K pelo servidor local.
+- [ ] **Phase 2: Assistir arquivos prontos pelo C4K** é Importar arquivo e assistir pela fonte C4K pelo servidor local.
 - [ ] **Phase 3: Preparar episódios a partir de fontes** é Escolher fonte manual ou provedor e receber episódio completo no Stremio.
 - [ ] **Phase 4: Antecipar próximos episódios** é Ao iniciar N, preparar N+1/N+2 conforme capacidade comprovada.
 - [ ] **Phase 5: Proteger biblioteca e disco** é Manter antecipação confiável com disco limitado e falhas.
@@ -27,8 +27,8 @@ Milestone v1: PC prepara próximos episódios; Stremio da TCL C6K Android TV 14 
 5. Decidir eventos completos, modo local com entrada inicial manual, ou transporte reprovado. Falha de transporte impede avançar sem resolução.
 **Plans:** 01-01-PLAN.md implementado; checkpoint de compatibilidade na TV pendente.
 
-### Phase 2: Assistir arquivos prontos pelo Casa4K
-**Goal:** Importar arquivo e assistir pela fonte Casa4K pelo servidor local.
+### Phase 2: Assistir arquivos prontos pelo C4K
+**Goal:** Importar arquivo e assistir pela fonte C4K pelo servidor local.
 **Mode:** mvp
 **Depends on:** Phase 1
 **Requirements:** ADDN-01, ADDN-02, CONF-01
@@ -60,7 +60,7 @@ Milestone v1: PC prepara próximos episódios; Stremio da TCL C6K Android TV 14 
 **Requirements:** AUTO-01, AUTO-02, AUTO-03, AUTO-04
 **UI hint:** yes
 **Success Criteria:**
-1. Início por outro addon só dispara preparação se gate de eventos passou; sem eventos, entrada inicial manual e consumo Casa4K ativam modo local declarado.
+1. Início por outro addon só dispara preparação se gate de eventos passou; sem eventos, entrada inicial manual e consumo C4K ativam modo local declarado.
 2. Dedupe/seek/stop ausente/reinício criam intenção única por episódio/perfil; HEAD e consulta stream não disparam aquisição.
 3. Respeitar mudança de temporada, não lançados, replays, quota mínima e prioridades.
 4. Janela avança no próximo episódio; progresso inferido não marca assistido nem apaga arquivos.
@@ -97,7 +97,7 @@ Milestone v1: PC prepara próximos episódios; Stremio da TCL C6K Android TV 14 
 | Phase | Plans Complete | Status | Completed |
 |---|---|---|---|
 | 1. Provar addon e eventos na TCL C6K | 0/1 | Awaiting TV verification | - |
-| 2. Assistir arquivos prontos pelo Casa4K | 0/TBD | Not started | - |
+| 2. Assistir arquivos prontos pelo C4K | 0/TBD | Not started | - |
 | 3. Preparar episódios a partir de fontes | 0/TBD | Not started | - |
 | 4. Antecipar próximos episódios | 0/TBD | Not started | - |
 | 5. Proteger biblioteca e disco | 0/TBD | Not started | - |

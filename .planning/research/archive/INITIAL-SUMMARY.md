@@ -2,7 +2,7 @@
 
 # Recomendação executiva
 
-Começar com arquivos completos no PC e validar reprodução pelo Stremio na Google TV. Casa4K .NET administra desejos, fila, disco, instalação e publicação local; qBittorrent realiza downloads.
+Começar com arquivos completos no PC e validar reprodução pelo Stremio na Google TV. C4K .NET administra desejos, fila, disco, instalação e publicação local; qBittorrent realiza downloads.
 
 Fluxo alvo: adicionar desejo no painel → informar fonte ou aguardar uma → baixar no PC → verificar → publicar no servidor local → assistir pela LAN. Poucos seeders deixam de afetar a sessão depois da conclusão; ainda podem atrasar ou impedir a preparação. Wi-Fi, codecs, legendas e PC acordado continuam sendo condições.
 

@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Casa4K;
+namespace C4K;
 
 public sealed class MediaFiles(string root)
 {

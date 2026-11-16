@@ -1,6 +1,6 @@
 # Arquitetura vigente
 
-Stremio TV é host Casa4K .NET é mídia completa no PC. O mesmo host atende manifest/catalog/meta/stream, eventos condicionais, painel loopback e workers. SQLite persiste intenções; qBittorrent em loopback transfere.
+Stremio TV é host C4K .NET é mídia completa no PC. O mesmo host atende manifest/catalog/meta/stream, eventos condicionais, painel loopback e workers. SQLite persiste intenções; qBittorrent em loopback transfere.
 
 Eventos e consumo HTTP local acionam planejador idempotente. Resolvedor busca fonte por addon configurado ou entrada manual; não recebe segredos de outros addons. Biblioteca separa incompletos de Ready, com promoção atômica. HTTP Range permite seek sem transcodificador próprio.
 
