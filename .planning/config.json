@@ -1,0 +1,11 @@
+{
+  "mode": "interactive",
+  "granularity": "standard",
+  "model_profile": "balanced",
+  "response_language": "pt-BR",
+  "project_code": "C4K",
+  "planning": { "commit_docs": true, "search_gitignored": false },
+  "parallelization": { "enabled": false, "plan_level": false, "task_level": false },
+  "workflow": { "research": true, "plan_check": true, "verifier": true, "auto_advance": false, "nyquist_validation": true },
+  "gates": { "execute_next_plan": true, "confirm_transition": true, "confirm_milestone_scope": true }
+}

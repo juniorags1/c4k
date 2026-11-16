@@ -1,0 +1,27 @@
+# Opções e escopo funcional
+
+## Comparação
+
+| Caminho | Trabalho próprio | Instalação | Adequação |
+|---|---|---|---|
+| qBittorrent + Jellyfin | Nenhum | Instaladores nativos separados | Melhor prova inicial: baixar e assistir localmente |
+| Radarr + Sonarr + qBittorrent + Jellyfin | Pouco ou nenhum | Componentes nativos Windows | Bom se aceitar painéis separados e configurar provedores; pode dispensar Casa4K |
+| Casa4K .NET + qBittorrent + Jellyfin | Moderado | Instalador coordenado | Escolhido para lista unificada, status e fluxo doméstico simples |
+| Casa4K + addon Stremio | Maior | Mesmo PC, instalação do addon na conta/TV | Preserva player preferido se teste LAN e protocolo passar |
+| Cache remoto/debrid | Pouco | Depende de terceiro e conta | Não atende plenamente a servidor local standalone; cache não garante título raro |
+
+Radarr já oferece seleção/perfis de filmes; Sonarr cobre séries e episódios. Ambos oferecem distribuição Windows. Não acrescentar esses dois como dependências obrigatórias se a versão inicial aceitar fontes explícitas e apenas coordenar os downloads. Se busca automática completa virar prioridade, preferir seus adaptadores a reimplementar indexadores.
+
+## Essencial para v1
+
+Lista própria com identidade de filme ou série/temporada/episódio; fonte fornecida; perfis de preferência e limite de tamanho; fila com retomada; estados honestos; importação integral; publicação Jellyfin; proteção de espaço; configuração por navegador; instalador e diagnóstico. Um desejo sem fonte permanece aguardando fonte, nunca simula download automático.
+
+## Diferenciais posteriores
+
+Catálogo de prontos no Stremio; fonte local associada a IMDb/episódio; monitoramento de novos episódios; integração com listas externas documentadas; notificações; múltiplos perfis e retenção por histórico.
+
+## Não construir inicialmente
+
+Player, transcodificador, indexador universal, cliente BitTorrent, sincronização de credenciais Stremio por engenharia reversa, promessa de recuperar torrent morto. Lista de desejos de conta Stremio não é equivalente a catálogo de addon: documentação consultada descreve recursos de catálogo e stream, não comprovou eventos de alteração da lista pessoal.
+
+Fontes: [Radarr](https://radarr.video/), [Sonarr](https://sonarr.tv/), [catálogo Stremio](https://stremio.github.io/stremio-addon-sdk/api/requests/defineCatalogHandler.html), [streams Stremio](https://stremio.github.io/stremio-addon-sdk/api/requests/defineStreamHandler.html). Comparações de esforço são avaliação de arquitetura, não benchmarks.

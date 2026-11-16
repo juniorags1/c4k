@@ -1,0 +1,10 @@
+.vs/
+**/bin/
+**/obj/
+artifacts/
+*.user
+*.log
+appsettings.Local.json
+media/
+downloads/
+data/
