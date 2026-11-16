@@ -1,9 +1,9 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 2
-current_phase_name: Assistir arquivos prontos pelo C4K
+current_phase: 3
+current_phase_name: Preparar episódios a partir de fontes
 status: in_progress
-stopped_at: Biblioteca local 0.2 implementada e publicada; UAT de legendas e autoplay pendente.
+stopped_at: Automação 0.3 publicada; aguardando configuração da senha e validação real do qBittorrent na porta 8082.
 last_updated: "2026-11-16T14:58:34.375Z"
 last_activity: 2026-11-16
 last_activity_desc: biblioteca local 0.2 entregue; 65 checks HTTP e 7 de recuperação aprovados.
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-16)
 
 **Core value:** Assistir título preparado no PC pela LAN sem depender de seeders durante a sessão.
-**Current focus:** Phase 2 - biblioteca local implementada; UAT pendente.
+**Current focus:** Phase 3 - automação 0.3 publicada; integração real autenticada pendente.
 
 ## Current Position
 
-Phase: 2 of 6 (Assistir arquivos prontos pelo C4K)
+Phase: 3 of 6 (Preparar episódios a partir de fontes)
 Plan: 1 of 1 in current phase
-Status: Implementation delivered; subtitle/autoplay UAT pending
-Last activity: 2026-11-16 — Biblioteca 0.2 publicada; 65 checks HTTP, 7 de recuperação e DOM real aprovados.
+Status: Automação inicial implementada; UAT autenticado e demais critérios amplos da fase pendentes
+Last activity: 2026-11-16 — 0.3 publicada; 24 checks de lógica/arquivos, 46 HTTP e DOM Edge aprovados. Manifest e mídia original preservados.
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -41,6 +41,8 @@ Total plans completed: 1. Sem métricas de execução disponíveis.
 ## Accumulated Context
 
 ### Decisions
+
+- 2026-11-16: usuário escolheu Torrentio e qBittorrent na porta 8082. new/done sem cópias; exclusão física explícita. Configuração protegida com DPAPI. Vídeo de teste migrado para referência direta em done, removido somente vínculo antigo; tokens preservados. Automação desativada até configuração no painel. Provedor respondeu manifest 0.0.15; qBittorrent respondeu 403 sem credenciais.
 
 - Usuário confirmou que o teste na TV funcionou e pediu nome C4K. Solução, código, executável e painel renomeados; dados e tokens migrados com o mesmo manifest. Alias do catálogo anterior mantém compatibilidade.
 - Após validação inicial, usuário autorizou continuar. Biblioteca 0.2 implementa importação persistente, legendas, configuração e revogação; UAT detalhado permanece separado da implementação.
@@ -55,13 +57,13 @@ Total plans completed: 1. Sem métricas de execução disponíveis.
 
 ### Pending Todos
 
-Validar legendas e continuidade na TCL; confirmar eventos recebidos e escolher provedor de fontes para fase 3.
+Informar credenciais somente no painel, testar conexão, ativar automação e validar libraryAdd → download → TV. Validar legendas e continuidade na TCL. Provedor já escolhido: Torrentio.
 
 ### Blockers/Concerns
 
 Instalação no PC via loopback e reprodução na TV via LAN confirmadas pelo usuário; diagnóstico de Mixed Content documentado.
 
-Usuário confirmou reprodução básica na TCL. Duração, seek, áudio/legendas e eventos específicos não foram detalhados; critérios formais restantes continuam pendentes. Sem downloader/antecipação nesta entrega.
+Usuário confirmou reprodução básica na TCL. Duração, seek, áudio/legendas e eventos específicos não foram detalhados. Downloader inicial implementado e testado com API simulada; teste real depende da autenticação local. Antecipação por reprodução ainda não implementada.
 
 ## Quick Tasks Completed
 

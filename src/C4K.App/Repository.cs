@@ -25,6 +25,7 @@ public sealed partial class Repository
             """;
         command.ExecuteNonQuery();
         InitializeLibrary();
+        InitializeDownloads();
     }
 
     private SqliteConnection Open() { var db = new SqliteConnection(connectionString); db.Open(); return db; }
@@ -52,7 +53,7 @@ public sealed partial class Repository
         cmd.ExecuteNonQuery();
     }
 
-    public void Record(string resource, string type, string id, string action, long? time, long? duration, string? videos)
+    public void Record(string resource, string type, string id, string action, long? time, long? duration, string? videos, bool queueDownload = false)
     {
         using var db = Open(); using var transaction = db.BeginTransaction(); using var cmd = db.CreateCommand();
         cmd.Transaction = transaction;
@@ -64,7 +65,10 @@ public sealed partial class Repository
         cmd.Parameters.AddWithValue("$r", resource); cmd.Parameters.AddWithValue("$t", type); cmd.Parameters.AddWithValue("$v", id);
         cmd.Parameters.AddWithValue("$a", action); cmd.Parameters.AddWithValue("$c", (object?)time ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$d", (object?)duration ?? DBNull.Value); cmd.Parameters.AddWithValue("$videos", (object?)videos ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("$at", DateTimeOffset.UtcNow.ToString("O")); cmd.ExecuteNonQuery(); transaction.Commit();
+        cmd.Parameters.AddWithValue("$at", DateTimeOffset.UtcNow.ToString("O")); cmd.ExecuteNonQuery();
+        if (queueDownload && resource == "library" && action == "libraryAdd" && id.StartsWith("tt", StringComparison.Ordinal))
+            InsertDownload(db, transaction, NormalizeDownload(new(type, id)));
+        transaction.Commit();
     }
 
     public List<Activity> Events()

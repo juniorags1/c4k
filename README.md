@@ -1,6 +1,6 @@
 # C4K
 
-Addon Stremio e servidor local .NET para preparar mídia no PC e reproduzir na TV. **Versão 0.2: biblioteca local**, com importação persistente, legendas e diagnóstico de eventos. Download, busca de fontes e antecipação de episódios serão implementados nas próximas fases.
+Addon Stremio e servidor local .NET para preparar mídia no PC e reproduzir na TV. **Versão 0.3: automação com qBittorrent**, seleção de fontes 4K e catálogo sem cópias. Antecipação por evento de reprodução permanece na próxima fase.
 
 ## Iniciar no PC
 
@@ -10,11 +10,13 @@ Com SDK .NET 10.0.400 instalado, na raiz do projeto:
 dotnet run --project src/C4K.App
 ```
 
-Abra **http://127.0.0.1:48241/admin/**. Informe o caminho completo de um vídeo já finalizado, título e tipo. Use o IMDb da obra para associar às fontes normais do Stremio; vazio cria uma identificação local no catálogo C4K. Para séries, informe temporada e episódio. MP4, MKV, WEBM e M4V são aceitos; não há transcodificação ou certificação de integridade.
+Abra **http://127.0.0.1:48241/admin/**. Configure usuário e senha da Interface Web do qBittorrent 5.x em **http://127.0.0.1:8082**, salve, teste a conexão e ative a automação. O provedor padrão é `https://torrentio.strem.fun/manifest.json`. A senha fica protegida pelo Windows (DPAPI CurrentUser), fora do repositório e das respostas do painel.
 
-O painel acompanha importações. No mesmo disco, o app tenta hardlink sem duplicar os dados; origem permanece intacta, mas alterações posteriores no conteúdo do original também afetam esse vínculo. Escolha **cópia independente** se quiser separar o conteúdo. Caso hardlink não seja possível, o app copia em segundo plano e só publica o arquivo após concluir. O original nunca é excluído. Importações que falham mostram erro e permitem tentar novamente; após reinício, tarefas em andamento são reprocessadas sem publicar arquivos parciais. Retirar um item do catálogo não apaga os arquivos nem libera espaço automaticamente.
+Quando o Stremio envia `libraryAdd`, a intenção é persistida junto com o evento e deduplicada por vídeo. Filmes usam IMDb; séries sem episódio explícito começam em S1E1. O resolvedor escolhe maior contagem de seeds informada entre fontes 4K/2160p com hash torrent. Isso não garante peers disponíveis. Fontes sem contagem interpretável não são escolhidas automaticamente. Solicitação manual por IMDb/episódio ou magnet está disponível no painel; não importa retroativamente toda a biblioteca Stremio.
 
-Opcionalmente, informe legenda SRT/VTT em UTF-8 com até 5 MB e selecione idioma. Ela é oferecida no stream por acesso de mídia próprio. Seleção/sincronização e autoplay entre episódios ainda dependem do cliente real. Não use caminhos UNC ou arquivos em download. A API anterior `/admin/api/media` segue aceitando cadastro relativo à raiz para compatibilidade.
+Magnets são enviados pela API, com arquivos incompletos em `C:\media\new` e finalizados em `C:\media\done`. Não é necessário gravar magnets como arquivos na pasta monitorada. Caminhos são definidos por nova tarefa; tarefas antigas e preferências globais do qBittorrent não são alteradas. O catálogo referencia diretamente o arquivo completo de done, após confirmar conclusão e ausência de movimentação/verificação. Pacotes exigem índice de vídeo válido ou um único vídeo; nenhuma escolha implícita pelo maior arquivo. Outro item usando o mesmo pacote é bloqueado nesta versão.
+
+**Apagar vídeo e retirar do catálogo exclui fisicamente o vídeo de done**, mediante confirmação. Não exclui diretórios nem outros arquivos do pacote. A tarefa própria é removida do qBittorrent com `deleteFiles=false` antes da exclusão exata; tarefas externas, compartilhamento e arquivos em uso bloqueiam a operação. A conexão com qBittorrent é necessária para verificar essa proteção. O cadastro manual aceita somente arquivos já completos na raiz done, sem copiar. Importações antigas com cópia não são retomadas pela versão 0.3. MP4, MKV, WEBM e M4V são aceitos; não há transcodificação.
 
 Copie o manifest privado pelo painel e instale diretamente no Stremio. No catálogo C4K, abra a amostra cadastrada. Para associar arquivo a uma obra existente, use o IMDb correto; episódios usam o ID da série seguido de `:temporada:episódio`. Primeiro teste filme com ID local `c4k:amostra` para separar a prova de rede da associação de metadados.
 
@@ -41,13 +43,13 @@ O botão do aplicativo usa `stremio:///addons?addon=...` para preservar o `http:
 
 ## Dados locais e diagnóstico
 
-Por padrão, `%LOCALAPPDATA%\C4K` contém `secrets.json`, `c4k.db` e a pasta `media`. Proteja esse diretório como dados privados. Não o coloque no Git. `secrets.json` mantém dois tokens separados (addon/mídia), fora das URLs de log e independentes do painel. Para revogar o pareamento nesta prova, pare o host, remova somente `secrets.json` e reinicie; será necessário reinstalar o novo manifest.
+Por padrão, `%LOCALAPPDATA%\C4K` contém `secrets.json`, `automation.json`, `library.json` e `c4k.db`; vídeos ficam em `C:\media\done`. Proteja esse diretório como dados privados. Não o coloque no Git. `secrets.json` mantém dois tokens separados (addon/mídia), fora das URLs de log e independentes do painel. Para revogar o pareamento, use o botão de gerar novos links.
 
 A renomeação para C4K preservou os dados desta instalação, tokens e URL do manifest. O catálogo anterior segue como alias para clientes já instalados. Se o Stremio mantiver o nome antigo em cache, atualize/reinstale o addon com a mesma URL para carregar o nome C4K.
 
-Variáveis opcionais: `C4K_DATA_DIR`, `C4K_MEDIA_ROOT`, `C4K_ADDON_PORT`, `C4K_ADMIN_PORT`, `C4K_PUBLIC_URL`. A importação lê arquivos locais de outras pastas e publica na raiz gerenciada, recusando links simbólicos/junctions e pastas de rede. O cadastro direto antigo continua restrito à raiz. Não altere arquivos durante reprodução.
+Variáveis opcionais: `C4K_DATA_DIR`, `C4K_MEDIA_ROOT`, `C4K_ADDON_PORT`, `C4K_ADMIN_PORT`, `C4K_PUBLIC_URL`. O cadastro direto recusa caminhos fora da raiz, links simbólicos/junctions e pastas de rede. Não altere arquivos durante reprodução.
 
-Em **Pastas, endereço da rede e acesso**, salve o IP deste PC para persistir em `network.json`. Uma variável `C4K_PUBLIC_URL` explícita tem prioridade e bloqueia alteração pelo painel. Gerar novos links revoga os anteriores de addon, vídeo e legenda, preservando arquivos e catálogo; será necessário reinstalar o addon. A pasta da biblioteca pode ser configurada pelo painel apenas quando estiver vazia e sem importações em andamento, persistindo em `library.json`; uma variável `C4K_MEDIA_ROOT` explícita tem prioridade. Trocar pasta não move nem exclui arquivos antigos.
+Em **Rede e links de acesso**, salve o IP deste PC para persistir em `network.json`. Uma variável `C4K_PUBLIC_URL` explícita tem prioridade. Gerar novos links revoga os anteriores, preservando arquivos e catálogo; será necessário reinstalar o addon. `library.json` mantém a raiz de completos; instalações antigas precisam migrar referências antes de mudar a raiz. Trocar configuração não move arquivos automaticamente.
 
 O painel mostra os últimos 100 eventos recebidos; banco retém até 5.000. A presença de `libraryAdd` ou `start` só demonstra um evento recebido: requests simuladas não aprovam compatibilidade com Stremio Android TV. Não há importação de biblioteca antiga ou replay garantido. Reprodução por player externo pode mudar os eventos disponíveis.
 

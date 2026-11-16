@@ -15,7 +15,7 @@ var dataDir = Environment.GetEnvironmentVariable("C4K_DATA_DIR") ?? Path.Combine
 var settings = AppSettings.Load(dataDir);
 var libraryPath = Path.Combine(dataDir, "library.json");
 var savedRoot = File.Exists(libraryPath) ? JsonSerializer.Deserialize<LibrarySettings>(File.ReadAllText(libraryPath))?.Root : null;
-var mediaRoot = Environment.GetEnvironmentVariable("C4K_MEDIA_ROOT") ?? savedRoot ?? Path.Combine(dataDir, "media");
+var mediaRoot = Environment.GetEnvironmentVariable("C4K_MEDIA_ROOT") ?? savedRoot ?? @"C:\media\done";
 Directory.CreateDirectory(mediaRoot);
 var files = new MediaFiles(mediaRoot);
 var repository = new Repository(dataDir);
@@ -32,7 +32,11 @@ var pairingGate = new object();
 var libraryGate = new object();
 builder.Services.AddSingleton(repository);
 builder.Services.AddSingleton(files);
-builder.Services.AddHostedService<ImportWorker>();
+var automation = new AutomationSettings(dataDir);
+var downloader = new DownloadWorker(repository, files, automation);
+builder.Services.AddSingleton(automation);
+builder.Services.AddSingleton(downloader);
+builder.Services.AddHostedService(_ => downloader);
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(addonPort);
@@ -97,7 +101,40 @@ app.MapGet("/admin/api/status", () => new
     browserInstallUrl = $"https://web.stremio.com/#/addons?addon={Uri.EscapeDataString(ManifestUrl())}",
     publicUrl, mediaRoot = files.Root, media = repository.Media(), events = repository.Events(),
     imports = repository.Imports(),
-    warning = "Biblioteca local: downloads de fontes e antecipação de episódios ainda não implementados."
+    automation = automation.Public(), downloads = repository.Downloads(), connectionStatus = downloader.ConnectionStatus,
+    warning = "Adicionar uma série sem episódio explícito prepara S1E1. Remover pelo painel apaga o vídeo físico."
+});
+app.MapPost("/admin/api/automation", async (AutomationInput input, CancellationToken ct) =>
+{
+    await downloader.Gate.WaitAsync(ct);
+    try { automation.Save(input); return Results.Ok(new { ok = true }); }
+    finally { downloader.Gate.Release(); }
+});
+app.MapPost("/admin/api/automation/test", async (CancellationToken ct) =>
+{
+    try { return Results.Ok(new { message = await downloader.Test(ct) }); }
+    catch (Exception e) { return Results.BadRequest(new { error = DownloadWorker.Friendly(e) }); }
+});
+app.MapPost("/admin/api/downloads", async (DownloadRequest input, CancellationToken ct) =>
+{
+    await downloader.Gate.WaitAsync(ct);
+    try { return Results.Accepted(value: repository.QueueDownload(input)); }
+    finally { downloader.Gate.Release(); }
+});
+app.MapPost("/admin/api/downloads/retry", async (DownloadRetry input, CancellationToken ct) =>
+{
+    await downloader.Gate.WaitAsync(ct);
+    try
+    {
+        var job = repository.Downloads().FirstOrDefault(j => j.Id == input.Id);
+        if (job is null || job.State is not ("Failed" or "Removed")) return Results.Conflict();
+        var request = input.Magnet is null ? job.Request : job.Request with { Magnet = input.Magnet, FileIndex = input.FileIndex };
+        Repository.NormalizeDownload(request);
+        repository.SaveDownload(job with { State = "Queued", Error = null, Selected = false,
+            Hash = input.Magnet is null ? job.Hash : null, FileIndex = input.Magnet is null ? job.FileIndex : input.FileIndex, Request = request });
+        return Results.Ok(new { ok = true });
+    }
+    finally { downloader.Gate.Release(); }
 });
 app.MapPost("/admin/api/imports", (ImportRequest input) =>
 {
@@ -109,19 +146,25 @@ app.MapPost("/admin/api/imports", (ImportRequest input) =>
     if (source is null || !string.IsNullOrWhiteSpace(input.SubtitlePath) && subtitle is null ||
         input.SubtitleLang is not null && !Regex.IsMatch(input.SubtitleLang, "^[a-z]{3}$", RegexOptions.CultureInvariant))
         return Results.BadRequest(new { error = "Selecione arquivo completo local MP4/MKV/WEBM/M4V e, opcionalmente, SRT/VTT de até 5 MB. Não use links ou pastas de rede." });
-    if (repository.Imports().Count(j => j.State is "Queued" or "Importing") >= 50)
-        return Results.Conflict(new { error = "Fila cheia. Aguarde as importações atuais." });
-    var job = repository.QueueImport(input with { SourcePath = source, SubtitlePath = subtitle });
-    return Results.Accepted($"/admin/api/imports/{job.Id}", job);
+    var relative = Path.GetRelativePath(files.Root, source);
+    if (files.Resolve(relative) is null || input.ForceCopy || subtitle is not null)
+        return Results.BadRequest(new { error = "Cadastre o vídeo completo diretamente em done. Cópias e importações de outras pastas foram desativadas." });
+    var m = input.Media;
+    repository.Register(new(Guid.NewGuid().ToString("N"), m.Type, m.MetaId, m.VideoId, m.Title, relative, m.Season, m.Episode));
+    return Results.Ok(new { state = "Ready" });
     }
 });
 app.MapGet("/admin/api/imports/{id}", (string id) => repository.Imports(id).FirstOrDefault() is { } job ? Results.Ok(job) : Results.NotFound());
 app.MapPost("/admin/api/imports/{id}/retry", (string id) =>
 {
     lock (libraryGate)
-        return repository.RetryImport(id) ? Results.Ok(new { ok = true }) : Results.Conflict(new { error = "Só é possível repetir uma importação que falhou." });
+        return Results.Conflict(new { error = "Importações com cópia foram desativadas. Cadastre o arquivo diretamente em done." });
 });
-app.MapDelete("/admin/api/media/{id}", (string id) => repository.RemoveMedia(id) ? Results.Ok(new { ok = true }) : Results.NotFound());
+app.MapDelete("/admin/api/media/{id}", async (string id, CancellationToken ct) =>
+{
+    try { return await downloader.Delete(id, ct) ? Results.Ok(new { ok = true }) : Results.NotFound(); }
+    catch (Exception e) { return Results.Conflict(new { error = DownloadWorker.Friendly(e) }); }
+});
 app.MapPost("/admin/api/pairing/rotate", () =>
 {
     lock (pairingGate)
@@ -183,7 +226,7 @@ app.MapPost("/admin/api/media", (RegisterMedia input) =>
     return Results.Ok(new { ok = true });
     }
 });
-app.MapGet("/health/live", () => Results.Ok(new { status = "ok", stage = "local-library", version = "0.2.0" }));
+app.MapGet("/health/live", () => Results.Ok(new { status = "ok", stage = "qbittorrent-automation", version = "0.3.0" }));
 
 var addon = app.MapGroup("/a/{token}").AddEndpointFilter(async (context, next) =>
 {
@@ -192,8 +235,8 @@ var addon = app.MapGroup("/a/{token}").AddEndpointFilter(async (context, next) =
 });
 addon.MapGet("/manifest.json", () => Results.Json(new
 {
-    id = "local.c4k.probe", version = "0.2.0", name = "C4K — biblioteca local",
-    description = "Filmes e episódios completos no PC, importação e legendas locais.",
+    id = "local.c4k.probe", version = "0.3.0", name = "C4K — biblioteca local",
+    description = "Arquivos completos no PC e automação de downloads pelo qBittorrent.",
     types = new[] { "movie", "series" },
     resources = new object[] { "catalog", new { name = "meta", types = new[] { "movie", "series" }, idPrefixes = new[] { "tt", "c4k:" } },
         new { name = "stream", types = new[] { "movie", "series" }, idPrefixes = new[] { "tt", "c4k:" } },
@@ -243,7 +286,7 @@ addon.MapGet("/{resource}/{type}/{id}/{extra}.json", (string resource, string ty
     else if (action is not ("libraryAdd" or "libraryRemove" or "watched" or "unwatched")) return Results.BadRequest();
     var videoIds = Value("videoId");
     if (videoIds.Length > 0 && (videoIds.Split(',').Length > 100 || videoIds.Split(',').Any(v => !MediaFiles.ValidId(v)))) return Results.BadRequest();
-    repository.Record(resource, type, id, action, time, duration, videoIds.Length == 0 ? null : videoIds);
+    repository.Record(resource, type, id, action, time, duration, videoIds.Length == 0 ? null : videoIds, automation.Current.Enabled);
     return Results.Json(new { });
 }).RequireRateLimiting("events");
 app.MapMethods("/m/{token}/{id}", ["GET", "HEAD"], (string token, string id) =>
@@ -261,7 +304,7 @@ app.MapMethods("/s/{token}/{id}.{extension}", ["GET", "HEAD"], (string token, st
     return path is null ? Results.NotFound() : Results.File(path, extension == "vtt" ? "text/vtt; charset=utf-8" : "application/x-subrip; charset=utf-8");
 });
 Console.WriteLine($"C4K: painel local http://127.0.0.1:{adminPort}/admin/");
-Console.WriteLine("Importe arquivos completos e copie o manifest pelo painel. Nenhum download de fontes é iniciado nesta versão.");
+Console.WriteLine("Configure o qBittorrent no painel. O catálogo serve os arquivos completos diretamente de done.");
 await app.RunAsync();
 
 static bool TokenEquals(string? actual, string expected) => actual is not null &&
@@ -270,3 +313,4 @@ static bool TokenEquals(string? actual, string expected) => actual is not null &
 public sealed record RegisterMedia(string Type, string MetaId, string VideoId, string Title, string FileName, int? Season, int? Episode);
 public sealed record NetworkSettings(string PublicUrl);
 public sealed record LibrarySettings(string Root);
+public sealed record DownloadRetry(string Id, string? Magnet = null, int? FileIndex = null);

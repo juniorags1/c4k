@@ -51,7 +51,7 @@ Milestone v1: PC prepara próximos episódios; Stremio da TCL C6K Android TV 14 
 2. Configurar e testar um addon de fontes real com contrato de candidatos suportados, recusados e expiração.
 3. Selecionar arquivo correto em pacote; pausa/reinício/cancelamento não duplicam jobs e fonte sem progresso fica explícita.
 4. Publicar download completo por caminho mínimo atômico e reproduzir na TV; rejeitar parcial e HTTP com destino proibido.
-**Plans:** To be planned.
+**Plans:** 03-01-PLAN.md implementado: Torrentio, magnets, qBittorrent e publicação direta. Validação real autenticada pendente; pausa/cancelamento, perfis e controles adicionais não estão concluídos. Download HTTP adiado pela revisão do usuário.
 
 ### Phase 4: Antecipar próximos episódios
 **Goal:** Ao iniciar N, preparar N+1/N+2 conforme capacidade comprovada.

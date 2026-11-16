@@ -1,10 +1,10 @@
 # Requirements: C4K é addon Stremio
 
-**Revised:** 2026-11-15
+**Revised:** 2026-11-16
 
 **Core Value:** Assistir conteúdo preparado no PC pelo Stremio sem depender de seeders durante a sessão.
 
-Alvo confirmado: TCL C6K Android TV 14, Stremio atual sem build numérica. Usuário escolheu manter addon de fontes e entrada manual. Nenhuma capacidade implementada. IDs anteriores preservados com escopo atualizado; Design vigente: [STREMIO-DESIGN.md](STREMIO-DESIGN.md).
+Alvo confirmado: TCL C6K Android TV 14, Stremio atual sem build numérica. Reprodução básica confirmada. Versão 0.3 implementa Torrentio, entrada manual, eventos libraryAdd e qBittorrent 5.x local na porta 8082. Integração real autenticada e eventos da TV ainda precisam de UAT. Decisão nova: new/done sem cópias, exclusão física explícita. IDs anteriores mantidos; requisitos amplos não são marcados completos só por uma parte estar entregue.
 
 ## v1 Requirements
 
@@ -21,7 +21,7 @@ Alvo confirmado: TCL C6K Android TV 14, Stremio atual sem build numérica. Usuá
 ### Intenção e fontes
 
 - [ ] **WISH-01**: Usuário pode acompanhar filmes/séries e definir episódio inicial no painel sem depender de histórico privado da conta.
-- [ ] **WISH-02**: Usuário pode fornecer torrent/magnet autorizado, URL HTTP(S) suportada ou arquivo local, com associação explícita de episódio em pacotes.
+- [ ] **WISH-02**: Usuário pode fornecer magnet autorizado ou arquivo já completo em done, com associação explícita de episódio em pacotes. Magnet e cadastro direto implementados na 0.3; entrada .torrent ainda pendente. URL HTTP adiada pela escolha de qBittorrent.
 - [ ] **WISH-03**: Usuário pode configurar qualidade, idioma, tamanho, prioridade e janela de um a cinco episódios; fallback de qualidade exige opção explícita.
 - [ ] **SRCE-01**: Usuário pode configurar um addon de fontes e consultar próximos episódios com candidatos suportados; comprovar um provedor real em teste.
 - [ ] **SRCE-02**: Usuário pode distinguir fonte ausente, incompatível, expirada e indisponível; fluxo manual funciona sem addon de fontes.
@@ -31,7 +31,7 @@ Alvo confirmado: TCL C6K Android TV 14, Stremio atual sem build numérica. Usuá
 - [ ] **DOWN-01**: Usuário pode acompanhar qBittorrent por API com seleção do arquivo correto, sem escolher maior arquivo implicitamente em pacotes ambíguos.
 - [ ] **DOWN-02**: Usuário pode pausar/retomar/cancelar jobs; reinício reconcilia estado antes de reenviar tarefas.
 - [ ] **DOWN-03**: Usuário pode ver sem progresso, falha e falta de espaço, com retries limitados e nenhuma publicação falsa de pronto.
-- [ ] **DOWN-04**: Usuário pode preparar HTTP(S) integral com retomada quando suportada, validação de redirects/destinos e recusa de esquemas não suportados.
+- [ ] **DOWN-04**: Download HTTP(S) integral adiado; não faz parte da revisão atual centrada em magnets e qBittorrent. Não implementado.
 
 ### Antecipação
 
@@ -44,7 +44,7 @@ Alvo confirmado: TCL C6K Android TV 14, Stremio atual sem build numérica. Usuá
 
 - [ ] **LIBR-01**: Usuário pode publicar só arquivo completo verificado, sem mover origem ativa de seeding ou exibir cópia parcial.
 - [ ] **LIBR-02**: Usuário pode restaurar Ready/identidades após reinício e atualizar lista de fontes com cache curto sem baixar novamente.
-- [ ] **DISK-01**: Usuário pode aplicar quota e reserva considerando cópia adicional, hardlinks e múltiplas séries.
+- [ ] **DISK-01**: Usuário pode aplicar quota e reserva considerando downloads incompletos, arquivos finais e múltiplas séries. Sem cópias/hardlinks adicionais na revisão atual.
 - [ ] **DISK-02**: Usuário pode remover mídia manualmente com impacto explícito e proteção a arquivo em leitura; não apagar por progresso inferido.
 
 ### Distribuição

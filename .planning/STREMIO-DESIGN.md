@@ -129,7 +129,7 @@ Nome `.local` e descoberta mDNS são conveniência, não dependência. Rede conv
 
 ## 10. Disco, arquivos e reprodução
 
-Separar downloads e ready; publicar por hardlink em mesmo volume ou cópia temporária + rename no destino. Considerar espaço adicional da cópia e duração do seeding. Conclusão por arquivo permite episódio pronto em pacote parcialmente baixado, desde que verificação das peças correspondentes esteja comprovada; primeira implementação pode exigir conclusão integral do job se API não comprovar essa condição, mostrando a limitação.
+Revisão autorizada em 2026-11-16: incompletos em `C:\media\new`, completos em `C:\media\done`, sem pasta ready adicional, hardlinks ou cópias. qBittorrent move ao concluir; catálogo referencia o arquivo final diretamente. Publicação exige progresso do vídeo completo, amount_left zero, tamanho esperado e ausência de verificação/movimentação. Remoção explícita no painel apaga o vídeo físico, após desanexar tarefa própria sem apagar pacote; tarefa externa ou compartilhada bloqueia. Não excluir pastas recursivamente.
 
 Quota inicialmente protege conteúdo não assistido e arquivos em leitura. Remoção manual cancela referência de publicação com confirmação e só libera bytes quando não há outros hardlinks/referências. Não automatizar exclusão por evento stop/offset. Legendas SRT locais podem ser servidas com token restrito; embutidas e hash para addons externos exigem teste. Download completo não resolve codec/HDR/áudio incompatível: escolher release compatível ou declarar necessidade de outro player, sem transcode próprio oculto.
 

@@ -46,7 +46,7 @@ Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou
 - **Rede:** desempenho precisa ser medido entre PC e TV; nenhuma promessa universal de ausência de travamentos.
 - **Custo:** priorizar software gratuito e equipamento existente; disco e rede dimensionados após medição.
 - **Origem:** arquivos locais, URLs e torrents para os quais o usuário possua autorização de acesso; não incluir credenciais ou fontes reais no repositório.
-- **Escopo atual:** usuário confirmou reprodução básica na TCL e autorizou continuar. Biblioteca 0.2 entrega importação, legendas e configuração local; duração/autoplay/eventos detalhados continuam como UAT pendente. Downloads e antecipação seguem nas fases 3/4.
+- **Escopo atual:** automação 0.3 implementada com Torrentio e qBittorrent 5.x local na porta 8082. new/done sem cópias; exclusão física explícita no painel. Integração real aguarda credenciais e prova de libraryAdd na TV. Antecipação por reprodução segue na fase 4; UAT de duração/autoplay/eventos detalhados pendente.
 
 ## Key Decisions
 
@@ -54,7 +54,7 @@ Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou
 |---|---|---|
 | Download integral antes de publicar | Desacoplar reprodução da internet/seeders | Proposta prioritária |
 | Stremio como cliente principal | Preferência explícita do usuário na revisão | Escolhido; gate de transporte/player na fase 1 |
-| qBittorrent via Web API | Evitar construir motor de download | Pendente de versão e configuração |
+| qBittorrent via Web API | Evitar construir motor de download | 5.3.0 detectado; porta 8082 responde, autenticação pendente |
 | .NET 10 LTS, SQLite e Razor Pages | Runtime empacotado, baixo número de processos próprios | Proposta |
 | Agente em sessão de usuário com início no login | Compatível com uso doméstico e apps de bandeja | Confirmar necessidade sem login |
 | Instalador coordenando componentes nativos | Standalone não significa um único processo | Pendente de licenças e empacotamento |

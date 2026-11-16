@@ -77,7 +77,7 @@ public sealed partial class Repository
     public bool CanChangeRoot()
     {
         using var db = Open(); using var cmd = db.CreateCommand();
-        cmd.CommandText = "SELECT (SELECT COUNT(*) FROM media)+(SELECT COUNT(*) FROM imports WHERE state IN ('Queued','Importing'))";
+        cmd.CommandText = "SELECT (SELECT COUNT(*) FROM media)+(SELECT COUNT(*) FROM imports WHERE state IN ('Queued','Importing'))+(SELECT COUNT(*) FROM downloads)";
         return Convert.ToInt64(cmd.ExecuteScalar()) == 0;
     }
 
