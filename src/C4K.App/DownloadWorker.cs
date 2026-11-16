@@ -55,6 +55,11 @@ public sealed class DownloadWorker(Repository repository, MediaFiles files, Auto
     public async Task Process(DownloadJob original, QbitClient qbit, CancellationToken ct)
     {
         var job = original;
+        if (string.IsNullOrWhiteSpace(job.Request.Title))
+        {
+            var title = await MediaNames.Resolve(sourceHttp, job.Request, ct);
+            if (title is not null) { job = job with { Request = job.Request with { Title = title } }; repository.SaveDownload(job); }
+        }
         if (job.Hash is null)
         {
             var candidate = job.Request.Magnet is { } manual
@@ -68,19 +73,25 @@ public sealed class DownloadWorker(Repository repository, MediaFiles files, Auto
         if (torrents.GetArrayLength() == 0)
         {
             if (job.State == "Downloading") throw new InvalidOperationException("Torrent removido do qBittorrent. Use tentar novamente para adicioná-lo de novo.");
-            await qbit.Post("torrents/add", new() { ["urls"] = job.Request.Magnet!, ["savepath"] = files.Root,
+            var magnet = job.Request.Magnet!;
+            if (job.Request.Title is not null && !Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(magnet[7..]).ContainsKey("dn"))
+                magnet += "&dn=" + Uri.EscapeDataString(MediaNames.Display(job.Request));
+            await qbit.Post("torrents/add", new() { ["urls"] = magnet, ["savepath"] = files.Root,
                 ["downloadPath"] = settings.Current.NewDirectory, ["useDownloadPath"] = "true", ["autoTMM"] = "false",
-                ["tags"] = "C4K", ["stopped"] = "true", ["stopCondition"] = "MetadataReceived" }, ct);
+                ["tags"] = "C4K", ["rename"] = MediaNames.Display(job.Request), ["stopped"] = "true", ["stopCondition"] = "MetadataReceived" }, ct);
             return;
         }
         var torrent = torrents[0];
         if (!torrent.GetProperty("tags").GetString()!.Split(',').Any(t => t.Trim() == "C4K"))
             throw new InvalidOperationException("Este torrent já existe fora do C4K. Não alteramos tarefas externas.");
+        if (job.Request.Title is not null && torrent.TryGetProperty("name", out var torrentName) && torrentName.GetString() != MediaNames.Display(job.Request))
+            await qbit.Post("torrents/rename", new() { ["hash"] = job.Hash!, ["name"] = MediaNames.Display(job.Request) }, ct);
         if (!string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(torrent.GetProperty("save_path").GetString()!)), Path.TrimEndingDirectorySeparator(files.Root), StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Torrent fora da pasta done configurada.");
         var contents = await qbit.Get("torrents/files?hash=" + job.Hash, ct);
         if (contents.GetArrayLength() == 0)
         {
+            repository.SaveDownload(job with { State = "Resolving", Error = null });
             // stopCondition interrompe automaticamente após obter metadados, antes dos dados do vídeo.
             await qbit.Post("torrents/start", new() { ["hashes"] = job.Hash! }, ct); return;
         }

@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Preparar episódios a partir de fontes
 status: in_progress
-stopped_at: Autenticação real com qBittorrent 5.3.0 na porta 8082 validada; aguarda teste libraryAdd/download/TV.
+stopped_at: libraryAdd real, seleção de fonte e download de Bugonia (2025) comprovados; aguarda conclusão e reprodução na TV.
 last_updated: "2026-11-16T14:58:34.375Z"
 last_activity: 2026-11-16
 last_activity_desc: biblioteca local 0.2 entregue; 65 checks HTTP e 7 de recuperação aprovados.
@@ -41,6 +41,8 @@ Total plans completed: 1. Sem métricas de execução disponíveis.
 ## Accumulated Context
 
 ### Decisions
+
+- Erro de adição resolvido: API 5.3 devolve contadores JSON. Uma tarefa existente foi retomada por hash, sem duplicar, e entrou em downloading com progresso real. Nome Bugonia (2025) resolvido via Cinemeta e aplicado no painel/torrent; arquivos físicos preservados. Ver debug/qbittorrent-add-name.md.
 
 - Correção de login: qBittorrent 5.3 retorna HTTP 204 vazio. Cliente agora comprova sessão via app/version; envio de magnets aceita 204. Teste real retornou Conectado: qBittorrent v5.3.0. Credenciais preservadas. Detalhes em debug/qbittorrent-login.md.
 

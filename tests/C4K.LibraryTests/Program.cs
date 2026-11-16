@@ -118,7 +118,32 @@ using (var failedAuth = new QbitClient("http://127.0.0.1:8082", new Authenticati
     catch (InvalidOperationException) { rejected = true; }
     Check(rejected, "Login legado 200/Fails não vira falso sucesso");
 }
+foreach (var scenario in new[] {
+    (HttpStatusCode.OK,"{\"success_count\":1,\"failure_count\":0,\"pending_count\":0}",true),
+    (HttpStatusCode.Accepted,"{\"success_count\":0,\"failure_count\":0,\"pending_count\":1}",true),
+    (HttpStatusCode.OK,"{\"success_count\":0,\"failure_count\":1,\"pending_count\":0}",false),
+    (HttpStatusCode.OK,"unexpected",false) })
+{
+    using var addClient = new QbitClient("http://127.0.0.1:8082", new AddResultFixture(scenario.Item1,scenario.Item2));
+    var accepted = true;
+    try { await addClient.Post("torrents/add", new() { ["urls"]="fixture" }, CancellationToken.None); }
+    catch (InvalidOperationException) { accepted = false; }
+    Check(accepted == scenario.Item3, "Interpreta resultado JSON/sucesso assíncrono/recusa sem falso positivo");
+}
+using (var titleJson = JsonDocument.Parse("{\"meta\":{\"id\":\"tt12300742\",\"name\":\"Bugonia\",\"year\":\"2025\"}}"))
+{
+    Check(MediaNames.FromMeta(titleJson.RootElement,"tt12300742") == "Bugonia (2025)", "Título público com ano");
+    Check(MediaNames.FromMeta(titleJson.RootElement,"tt7654321") is null, "Não associa título de outro IMDb");
+}
+Check(MediaNames.Display(new("series","tt1234567:2:3","Série")) == "Série — T02E03", "Nome do torrent distingue episódio");
+Check(handler.AddBody.Contains("rename=Fixture+4K") && handler.AddBody.Contains("dn%3DFixture%25204K"), "Título enviado como display name e dn sem renomear arquivo");
 Console.WriteLine($"PASS: {checks} verificações de migração, proteção, seleção e automação com API simulada.");
+
+sealed class AddResultFixture(HttpStatusCode status, string body) : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+        Task.FromResult(new HttpResponseMessage(status) { Content = new StringContent(body) });
+}
 
 sealed class AuthenticationFixture(bool modern, bool fail = false) : HttpMessageHandler
 {

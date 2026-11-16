@@ -37,8 +37,24 @@ public sealed class QbitClient : IDisposable
     public async Task Post(string path, Dictionary<string, string> values, CancellationToken ct)
     {
         using var r = await http.PostAsync(path, new FormUrlEncodedContent(values), ct); r.EnsureSuccessStatusCode();
-        if (path == "torrents/add" && r.StatusCode != HttpStatusCode.NoContent &&
-            (await r.Content.ReadAsStringAsync(ct)).Trim() != "Ok.") throw new InvalidOperationException("qBittorrent recusou o magnet.");
+        if (path == "torrents/add" && r.StatusCode != HttpStatusCode.NoContent)
+        {
+            var body = (await r.Content.ReadAsStringAsync(ct)).Trim();
+            if (body == "Ok.") return;
+            // 5.3 retorna contadores JSON, inclusive 202 quando a adição é assíncrona.
+            try
+            {
+                using var json = JsonDocument.Parse(body);
+                var root = json.RootElement;
+                if (root.ValueKind == JsonValueKind.Object &&
+                    (Positive(root, "success_count") || Positive(root, "pending_count"))) return;
+            }
+            catch (JsonException) { }
+            throw new InvalidOperationException(body == "Fails." ? "qBittorrent recusou o magnet."
+                : "qBittorrent não confirmou a adição. A próxima tentativa consultará o hash antes de reenviar.");
+        }
     }
+    private static bool Positive(JsonElement root, string key) => root.TryGetProperty(key, out var value) &&
+        value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var count) && count > 0;
     public void Dispose() => http.Dispose();
 }
