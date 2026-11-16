@@ -13,6 +13,9 @@ Usuário confirmou erro ao colar manifest, não ao abrir vídeo ou botão. Esper
 
 ## Evidências
 
+- Console real enviado pelo usuário: worker.js HTTPS de web.stremio.com bloqueia fetch do manifest HTTP no IP LAN como Mixed Content. Esta é a evidência específica do cliente; o teste anterior de LNA em Edge isolado não explica sozinho esse erro.
+- Próximo teste discriminante: mesmo manifest via http://127.0.0.1:48240 no app PC. Loopback recebe tratamento de origem potencialmente confiável para mixed content; permissão LNA continua sendo questão independente. Endpoint responde corretamente no PC. Não usar loopback como endereço da TV nem concluir sucesso no app antes do reteste.
+
 - HTTP sem proxy: LAN e loopback retornam 200 com CORS e JSON válido.
 - Reproduzido em contexto Edge isolado, carregando web.stremio.com: fetch LAN e loopback falham com permissão negada para address space local/loopback.
 - No mesmo contexto de teste, conceder permissões de rede via CDP transformou a resposta LAN em 200 e manifest local.casa4k.probe. Não foram alteradas permissões do navegador/aplicativo real do usuário.
