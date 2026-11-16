@@ -41,7 +41,7 @@ flowchart LR
     O --> P
 ```
 
-Um único host ASP.NET Core .NET 10 LTS contém addon, painel, media endpoint e workers. SQLite guarda estado. qBittorrent é processo nativo separado controlado via API local. Sem Jellyfin obrigatório; ele pode ler a mesma pasta como alternativa posterior. Direct play é prioridade; não há transcodificação própria. Interface Razor Pages evita runtime Node no uso e reduz componentes.
+Um único host ASP.NET Core .NET 10 LTS contém addon, painel, media endpoint e workers. SQLite guarda estado. qBittorrent é processo nativo separado controlado via API local. Direct play é prioridade; não há transcodificação própria. Interface Razor Pages evita runtime Node no uso e reduz componentes.
 
 Estrutura proposta: `src/Casa4K.App` (host/endpoints/UI/workers), `src/Casa4K.Core` (políticas/modelos), `src/Casa4K.Infrastructure` (SQLite, HTTP, qBittorrent, disco), `tests/Casa4K.Tests` (políticas e contratos), `installer/` e `docs/`. Começar com esses três projetos; não usar microserviços.
 

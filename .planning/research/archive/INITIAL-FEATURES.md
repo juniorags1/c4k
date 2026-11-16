@@ -6,9 +6,9 @@
 
 | Caminho | Trabalho próprio | Instalação | Adequação |
 |---|---|---|---|
-| qBittorrent + Jellyfin | Nenhum | Instaladores nativos separados | Melhor prova inicial: baixar e assistir localmente |
-| Radarr + Sonarr + qBittorrent + Jellyfin | Pouco ou nenhum | Componentes nativos Windows | Bom se aceitar painéis separados e configurar provedores; pode dispensar Casa4K |
-| Casa4K .NET + qBittorrent + Jellyfin | Moderado | Instalador coordenado | Escolhido para lista unificada, status e fluxo doméstico simples |
+| qBittorrent + servidor local | Nenhum | Instaladores nativos separados | Melhor prova inicial: baixar e assistir localmente |
+| Radarr + Sonarr + qBittorrent + servidor local | Pouco ou nenhum | Componentes nativos Windows | Bom se aceitar painéis separados e configurar provedores; pode dispensar Casa4K |
+| Casa4K .NET + qBittorrent + servidor local | Moderado | Instalador coordenado | Escolhido para lista unificada, status e fluxo doméstico simples |
 | Casa4K + addon Stremio | Maior | Mesmo PC, instalação do addon na conta/TV | Preserva player preferido se teste LAN e protocolo passar |
 | Cache remoto/debrid | Pouco | Depende de terceiro e conta | Não atende plenamente a servidor local standalone; cache não garante título raro |
 
@@ -16,7 +16,7 @@ Radarr já oferece seleção/perfis de filmes; Sonarr cobre séries e episódios
 
 ## Essencial para v1
 
-Lista própria com identidade de filme ou série/temporada/episódio; fonte fornecida; perfis de preferência e limite de tamanho; fila com retomada; estados honestos; importação integral; publicação Jellyfin; proteção de espaço; configuração por navegador; instalador e diagnóstico. Um desejo sem fonte permanece aguardando fonte, nunca simula download automático.
+Lista própria com identidade de filme ou série/temporada/episódio; fonte fornecida; perfis de preferência e limite de tamanho; fila com retomada; estados honestos; importação integral; publicação servidor local; proteção de espaço; configuração por navegador; instalador e diagnóstico. Um desejo sem fonte permanece aguardando fonte, nunca simula download automático.
 
 ## Diferenciais posteriores
 

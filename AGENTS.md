@@ -4,7 +4,7 @@
 
 **Casa4K**
 
-Addon Stremio e servidor .NET que prepara filmes e episódios no PC para assistir na TCL C6K com Android TV 14. Ao iniciar um episódio, assegura os dois seguintes na fila e publica somente arquivos completos como fontes locais no Stremio. Instalador Windows sem Docker; Jellyfin fica como alternativa opcional.
+Addon Stremio e servidor .NET que prepara filmes e episódios no PC para assistir na TCL C6K com Android TV 14. Ao iniciar um episódio, assegura os dois seguintes na fila e publica somente arquivos completos como fontes locais no Stremio. Instalador Windows sem Docker.
 
 **Core Value:** Assistir na TV a um título previamente baixado no PC, pela rede doméstica, sem depender de seeders durante a sessão.
 
@@ -14,7 +14,7 @@ Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou
 
 - **Backend:** C# / ASP.NET Core .NET 10 LTS, patch suportado fixado ao implementar.
 - **Distribuição:** Windows 11 x64 presumido; confirmar sistema do PC. Publicação self-contained e instalador; SDK, Node, Docker e banco externo não serão requisitos de execução.
-- **Reprodução:** Stremio na TCL C6K Android TV 14 como cliente principal; Jellyfin opcional. Registrar build/player no teste.
+- **Reprodução:** Stremio na TCL C6K Android TV 14 como cliente principal. Registrar build/player no teste.
 - **Disponibilidade:** PC ligado e acordado durante downloads e reprodução; mídia fica no disco local.
 - **Rede:** desempenho precisa ser medido entre PC e TV; nenhuma promessa universal de ausência de travamentos.
 - **Custo:** priorizar software gratuito e equipamento existente; disco e rede dimensionados após medição.
@@ -36,7 +36,6 @@ Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou
 | Download | qBittorrent nativo por Web API em loopback | Alta documental; vers?o negociada |
 | TV | Stremio na TCL C6K Android TV 14 | Reprodu??o LAN e eventos pendentes |
 | Instalador | Inno Setup, app self-contained win-x64 | Proposta; VM limpa na fase 6 |
-| Jellyfin | Opcional, sem depend?ncia no caminho principal | Fora do MVP obrigat?rio |
 <!-- GSD:stack-end -->
 
 <!-- GSD:conventions-start source:CONVENTIONS.md -->

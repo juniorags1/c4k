@@ -6,7 +6,7 @@
 |---|---|---|---|
 | Fonte sem cópia completa | Job não progride | Timeout configurável, status sem progresso, troca manual; nunca garantir obtenção | 3 |
 | Wi-Fi abaixo dos picos | Arquivo local também trava | Medir PC–TV e executar filme completo; PC por cabo quando possível | 1 |
-| Codec/HDR/áudio incompatível | Jellyfin transcodifica ou imagem incorreta | Matriz da TV com HEVC 10-bit, HDR, áudio e legendas reais | 1 |
+| Codec/HDR/áudio incompatível | Falha de reprodução ou imagem incorreta | Matriz da TV com HEVC 10-bit, HDR, áudio e legendas reais | 1 |
 | Legendas forçam burn-in | CPU alta ao ativar legenda | Testar SRT e legendas embutidas; preferir alternativa compatível | 1 |
 | Disco lota durante importação | Download completo, cópia falha | Reservas, limite total e checagem antes de copiar; hardlinks quando viável | 4 |
 | Arquivo parcial publicado | Player para no meio | Pastas separadas e promoção somente após conclusão verificada | 3–4 |
@@ -21,6 +21,6 @@ Dimensionamento ilustrativo, não medição: 25 GB decimais em duas horas ≈ 27
 
 Dez filmes de 30 GB ocupam 300 GB, além de temporários, possíveis cópias, metadados e reserva. SSD não é obrigatório para um único stream; capacidade e desempenho efetivo importam. Download de 40 GB a 50 Mbit/s leva no mínimo ~1h47, sem overhead ou falta de peers: pré-carregar significa esperar antes da sessão.
 
-Aceitação sugerida: arquivo 4K completo na TV, reprodução contínua por 60 minutos sem rebuffer após início, três seeks recuperando em até cinco segundos; repetir com legendas habituais. Meta a validar, não resultado já obtido. Desconectar WAN preservando LAN deve manter reprodução da biblioteca local Jellyfin. Addon Stremio tem teste separado, pois catálogo/login podem depender de serviços externos.
+Aceitação sugerida: arquivo 4K completo na TV, reprodução contínua por 60 minutos sem rebuffer após início, três seeks recuperando em até cinco segundos; repetir com legendas habituais. Meta a validar, não resultado já obtido. Desconectar WAN preservando LAN deve manter reprodução da biblioteca local servidor local. Addon Stremio tem teste separado, pois catálogo/login podem depender de serviços externos.
 
-Fonte para compatibilidade e legendas: [Jellyfin Codec Support](https://jellyfin.org/docs/general/clients/codec-support/). Cálculos e metas são propostas do projeto.
+Cálculos e metas são propostas do projeto, sem validação no equipamento.

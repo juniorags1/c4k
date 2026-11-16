@@ -4,7 +4,7 @@
 
 **Core Value:** Assistir conte?do preparado no PC pelo Stremio sem depender de seeders durante a sess?o.
 
-Alvo confirmado: TCL C6K Android TV 14, Stremio atual sem build num?rica. Usu?rio escolheu manter addon de fontes e entrada manual. Nenhuma capacidade implementada. IDs anteriores preservados com escopo atualizado; Jellyfin deixou de ser obrigat?rio. Design vigente: [STREMIO-DESIGN.md](STREMIO-DESIGN.md).
+Alvo confirmado: TCL C6K Android TV 14, Stremio atual sem build num?rica. Usu?rio escolheu manter addon de fontes e entrada manual. Nenhuma capacidade implementada. IDs anteriores preservados com escopo atualizado; Design vigente: [STREMIO-DESIGN.md](STREMIO-DESIGN.md).
 
 ## v1 Requirements
 
@@ -58,7 +58,6 @@ Alvo confirmado: TCL C6K Android TV 14, Stremio atual sem build num?rica. Usu?ri
 - **SYNC-01**: Importar hist?rico/biblioteca anterior e recuperar eventos perdidos por interface est?vel autorizada, se comprovada.
 - **NOTF-01**: Notifica??es e hor?rios de download.
 - **SERV-01**: Servi?o antes do login se necess?rio e validado.
-- **JELL-01**: Jellyfin opcional como player alternativo.
 - **PROF-01**: Perfis distintos com identidade comprovada; MVP usa perfil dom?stico por token.
 
 ## Out of Scope

@@ -2,12 +2,12 @@
 
 ## Overview
 
-Milestone v1: PC prepara pr?ximos epis?dios; Stremio da TCL C6K Android TV 14 reproduz arquivos completos pela LAN. Revis?o autorizada em 2026-11-15 substitui roadmap centrado em Jellyfin. Seis fases, nenhuma executada. Design: [STREMIO-DESIGN.md](STREMIO-DESIGN.md).
+Milestone v1: PC prepara pr?ximos epis?dios; Stremio da TCL C6K Android TV 14 reproduz arquivos completos pela LAN. Revis?o autorizada em 2026-11-15 substitui roadmap inicial de servidor de mídia. Seis fases, nenhuma executada. Design: [STREMIO-DESIGN.md](STREMIO-DESIGN.md).
 
 ## Phases
 
 - [ ] **Phase 1: Provar addon e eventos na TCL C6K** ? Comprovar reprodu??o LAN e estabelecer modo de antecipa??o realmente suportado.
-- [ ] **Phase 2: Assistir arquivos prontos pelo Casa4K** ? Importar arquivo e assistir pela fonte Casa4K sem Jellyfin obrigat?rio.
+- [ ] **Phase 2: Assistir arquivos prontos pelo Casa4K** ? Importar arquivo e assistir pela fonte Casa4K pelo servidor local.
 - [ ] **Phase 3: Preparar epis?dios a partir de fontes** ? Escolher fonte manual ou provedor e receber epis?dio completo no Stremio.
 - [ ] **Phase 4: Antecipar pr?ximos epis?dios** ? Ao iniciar N, preparar N+1/N+2 conforme capacidade comprovada.
 - [ ] **Phase 5: Proteger biblioteca e disco** ? Manter antecipa??o confi?vel com disco limitado e falhas.
@@ -28,7 +28,7 @@ Milestone v1: PC prepara pr?ximos epis?dios; Stremio da TCL C6K Android TV 14 re
 **Plans:** To be planned.
 
 ### Phase 2: Assistir arquivos prontos pelo Casa4K
-**Goal:** Importar arquivo e assistir pela fonte Casa4K sem Jellyfin obrigat?rio.
+**Goal:** Importar arquivo e assistir pela fonte Casa4K pelo servidor local.
 **Mode:** mvp
 **Depends on:** Phase 1
 **Requirements:** ADDN-01, ADDN-02, CONF-01

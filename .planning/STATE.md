@@ -42,7 +42,7 @@ Total plans completed: 0. Sem métricas de execução disponíveis.
 ### Decisions
 
 - Usuário pediu elaboração durante ausência: investigação inline e premissas revisáveis, sem entrevista bloqueante.
-- Usuário escolheu addon Stremio principal; host .NET 10 LTS serve mídia, qBittorrent baixa e Jellyfin fica opcional.
+- Usuário escolheu addon Stremio principal; host .NET 10 LTS serve mídia, qBittorrent baixa.
 - TV confirmada: TCL C6K Android TV 14, Stremio atual sem build exata. Manter fonte manual e addon configurável.
 - Eventos player/library têm documentação e código públicos; prova na TV vem primeiro. Fallback por consumo HTTP só cobre mídia servida pelo Casa4K.
 - Janela padrão proposta de dois episódios. Evento não informa origem da mídia; resolvedor de fontes separado.

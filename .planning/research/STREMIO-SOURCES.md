@@ -20,4 +20,4 @@ Registro GitHub API para S2: f31d53e (2026-09-29, introdução); 42738c9 (2026-1
 
 ## Correção das premissas anteriores
 
-A primeira pesquisa dizia que o protocolo consultado não comprovava eventos. A leitura aprofundada encontrou suporte documental e implementação pública. A resposta seguinte destacou essa possibilidade; a conclusão precisa permanecer condicional à versão real do cliente. O novo plano substitui a arquitetura centrada em Jellyfin e trata o addon como entrega principal, com prova de reprodução e eventos na primeira fase.
+A primeira pesquisa dizia que o protocolo consultado não comprovava eventos. A leitura aprofundada encontrou suporte documental e implementação pública. A resposta seguinte destacou essa possibilidade; a conclusão precisa permanecer condicional à versão real do cliente. O novo plano substitui a arquitetura inicial de servidor de mídia e trata o addon como entrega principal, com prova de reprodução e eventos na primeira fase.

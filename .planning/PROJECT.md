@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Addon Stremio e servidor .NET que prepara filmes e episódios no PC para assistir na TCL C6K com Android TV 14. Ao iniciar um episódio, assegura os dois seguintes na fila e publica somente arquivos completos como fontes locais no Stremio. Instalador Windows sem Docker; Jellyfin fica como alternativa opcional.
+Addon Stremio e servidor .NET que prepara filmes e episódios no PC para assistir na TCL C6K com Android TV 14. Ao iniciar um episódio, assegura os dois seguintes na fila e publica somente arquivos completos como fontes locais no Stremio. Instalador Windows sem Docker.
 
 ## Core Value
 
@@ -41,7 +41,7 @@ Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou
 
 - **Backend:** C# / ASP.NET Core .NET 10 LTS, patch suportado fixado ao implementar.
 - **Distribuição:** Windows 11 x64 presumido; confirmar sistema do PC. Publicação self-contained e instalador; SDK, Node, Docker e banco externo não serão requisitos de execução.
-- **Reprodução:** Stremio na TCL C6K Android TV 14 como cliente principal; Jellyfin opcional. Registrar build/player no teste.
+- **Reprodução:** Stremio na TCL C6K Android TV 14 como cliente principal. Registrar build/player no teste.
 - **Disponibilidade:** PC ligado e acordado durante downloads e reprodução; mídia fica no disco local.
 - **Rede:** desempenho precisa ser medido entre PC e TV; nenhuma promessa universal de ausência de travamentos.
 - **Custo:** priorizar software gratuito e equipamento existente; disco e rede dimensionados após medição.
@@ -61,7 +61,6 @@ Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou
 | Eventos player/library e observação HTTP local | Antecipar sem ler credenciais da conta | Gate de eventos e fallback na fase 1 |
 | Janela padrão de dois episódios | Dar tempo de preparação com limite de disco | Proposta configurável |
 | Addon de fontes e entrada manual | Usuário pediu manter ambas | Escolhido; provedor real ainda aberto |
-| Jellyfin opcional | Host .NET atende mídia do addon | Substitui decisão inicial centrada em Jellyfin |
 
 ## Premissas a confirmar
 

@@ -9,7 +9,6 @@
 | Download | qBittorrent nativo por Web API em loopback | Alta documental; vers?o negociada |
 | TV | Stremio na TCL C6K Android TV 14 | Reprodu??o LAN e eventos pendentes |
 | Instalador | Inno Setup, app self-contained win-x64 | Proposta; VM limpa na fase 6 |
-| Jellyfin | Opcional, sem depend?ncia no caminho principal | Fora do MVP obrigat?rio |
 
 Publica??o proposta: dotnet publish -c Release -r win-x64 --self-contained true. Single-file opcional; n?o confundir instalador com processo ?nico. N?o ativar trimming/AOT sem comprovar SQLite/EF/UI. Runtime empacotado precisa ser renovado nos updates.
 

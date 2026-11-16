@@ -11,7 +11,7 @@ Execução inline conforme adaptador Codex da skill gsd-quick; nenhuma implement
 
 1. Verificar protocolo, implementação pública e limites de cliente, eventos, fontes e rede.
 2. Produzir design detalhado com decisões, APIs, dados, agendador, segurança, instalação e testes.
-3. Atualizar projeto, requisitos, roadmap, pesquisas e instruções para Stremio principal/Jellyfin opcional.
+3. Atualizar projeto, requisitos, roadmap, pesquisas e instruções para Stremio e Casa4K.
 4. Verificar rastreabilidade e referências, registrar resumo/estado e commit.
 
 Aceitação: especificação permite implementar sem presumir eventos Android TV, acesso à conta ou descoberta de fontes; inclui caminho alternativo baseado em leitura HTTP, janela de episódios e teste físico de compatibilidade no início.

@@ -11,7 +11,7 @@ Investigação e planejamento executados inline conforme adaptador da skill gsd-
 - Especificação .planning/STREMIO-DESIGN.md: 13 seções sobre fluxo, eventos/fallback, resolvedores, janela, dados, endpoints, rede, tokens, disco, instalador e gates.
 - Fontes primárias em research/STREMIO-SOURCES.md, incluindo commit público de introdução de eventos no core. Não foi estabelecida build mínima Android TV.
 - Usuário confirmou TCL C6K Android TV 14, Stremio atual sem build exata e ambas opções de fontes.
-- Projeto, guia, pesquisas, 27 requisitos e seis fases revisados para addon principal; Jellyfin opcional. Pesquisas iniciais mantidas em archive/ com aviso histórico.
+- Projeto, guia, pesquisas, 27 requisitos e seis fases revisados para addon principal. Pesquisas iniciais mantidas em archive/ com aviso histórico.
 - Fase 1 recebeu protocolo de teste físico, ainda não executado.
 
 ## Verificação documental
