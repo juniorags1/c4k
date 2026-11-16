@@ -18,9 +18,16 @@ public sealed class QbitClient : IDisposable
         if (probe.IsSuccessStatusCode) return await probe.Content.ReadAsStringAsync(ct);
         if (password.Length == 0) throw new InvalidOperationException("qBittorrent exige autenticação. Informe usuário e senha no painel.");
         using var login = await http.PostAsync("auth/login", new FormUrlEncodedContent(new Dictionary<string, string> { ["username"] = username, ["password"] = password }), ct);
-        if (!login.IsSuccessStatusCode || (await login.Content.ReadAsStringAsync(ct)).Trim() != "Ok.")
+        if (login.StatusCode == HttpStatusCode.Forbidden)
+            throw new InvalidOperationException("qBittorrent bloqueou o login (HTTP 403). Verifique bloqueio temporário por tentativas e proteções da Interface Web.");
+        if (!login.IsSuccessStatusCode)
             throw new InvalidOperationException("Login do qBittorrent recusado. Verifique usuário e senha.");
-        using var version = await http.GetAsync("app/version", ct); version.EnsureSuccessStatusCode(); return await version.Content.ReadAsStringAsync(ct);
+        // qBittorrent 5.3 retorna 204 vazio; versões anteriores podem retornar 200/Ok.
+        // A consulta autenticada comprova a sessão, inclusive quando o login antigo retorna 200/Fails.
+        using var version = await http.GetAsync("app/version", ct);
+        if (version.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            throw new InvalidOperationException("A sessão do qBittorrent não foi autenticada. Verifique usuário e senha.");
+        version.EnsureSuccessStatusCode(); return await version.Content.ReadAsStringAsync(ct);
     }
     public async Task<JsonElement> Get(string path, CancellationToken ct)
     {
@@ -30,7 +37,8 @@ public sealed class QbitClient : IDisposable
     public async Task Post(string path, Dictionary<string, string> values, CancellationToken ct)
     {
         using var r = await http.PostAsync(path, new FormUrlEncodedContent(values), ct); r.EnsureSuccessStatusCode();
-        if (path == "torrents/add" && (await r.Content.ReadAsStringAsync(ct)).Trim() != "Ok.") throw new InvalidOperationException("qBittorrent recusou o magnet.");
+        if (path == "torrents/add" && r.StatusCode != HttpStatusCode.NoContent &&
+            (await r.Content.ReadAsStringAsync(ct)).Trim() != "Ok.") throw new InvalidOperationException("qBittorrent recusou o magnet.");
     }
     public void Dispose() => http.Dispose();
 }

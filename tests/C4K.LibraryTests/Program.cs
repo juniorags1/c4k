@@ -104,7 +104,38 @@ using var deleting = new DownloadWorker(downloads, mediaFiles, automation, () =>
 Check(await deleting.Delete(video.Id, CancellationToken.None), "Exclusão física de fixture gerenciada");
 Check(!File.Exists(Path.Combine(downloadRoot,"video.mp4")) && File.Exists(Path.Combine(downloadRoot,"other.mp4")), "Apaga só o vídeo registrado, mantém outro arquivo do pacote");
 Check(downloads.Media().Count == 0 && downloads.Downloads().Single(j=>j.Id==queued.Id).State == "Removed", "Exclusão retira catálogo e impede republicação");
+foreach (var modern in new[] { true, false })
+{
+    using var authClient = new QbitClient("http://127.0.0.1:8082", new AuthenticationFixture(modern));
+    Check(await authClient.Connect("fixture", "fixture", CancellationToken.None) == "v5.3.0", modern ? "Login 204 vazio confirma sessão" : "Login legado 200 confirma sessão");
+    await authClient.Post("torrents/add", new() { ["urls"] = "fixture" }, CancellationToken.None);
+    Check(true, modern ? "Magnet aceita sucesso 204 vazio" : "Magnet aceita sucesso legado 200/Ok.");
+}
+using (var failedAuth = new QbitClient("http://127.0.0.1:8082", new AuthenticationFixture(false, true)))
+{
+    var rejected = false;
+    try { await failedAuth.Connect("fixture", "wrong", CancellationToken.None); }
+    catch (InvalidOperationException) { rejected = true; }
+    Check(rejected, "Login legado 200/Fails não vira falso sucesso");
+}
 Console.WriteLine($"PASS: {checks} verificações de migração, proteção, seleção e automação com API simulada.");
+
+sealed class AuthenticationFixture(bool modern, bool fail = false) : HttpMessageHandler
+{
+    private bool loggedIn;
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        if (request.RequestUri!.AbsolutePath.EndsWith("/login"))
+        {
+            loggedIn = !fail;
+            return Task.FromResult(new HttpResponseMessage(modern ? HttpStatusCode.NoContent : HttpStatusCode.OK)
+                { Content = new StringContent(modern ? "" : fail ? "Fails." : "Ok.") });
+        }
+        if (request.RequestUri.AbsolutePath.EndsWith("/add"))
+            return Task.FromResult(new HttpResponseMessage(modern ? HttpStatusCode.NoContent : HttpStatusCode.OK) { Content = new StringContent(modern ? "" : "Ok.") });
+        return Task.FromResult(new HttpResponseMessage(loggedIn ? HttpStatusCode.OK : HttpStatusCode.Forbidden) { Content = new StringContent(loggedIn ? "v5.3.0" : "Forbidden") });
+    }
+}
 
 sealed class QbitFixture(string root, string hash) : HttpMessageHandler
 {

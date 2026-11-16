@@ -8,6 +8,7 @@ $process = Get-Process -Id $registeredId -ErrorAction SilentlyContinue
 if ($process) {
     if ($process.Path -ne $exe) { throw 'O PID pertence a outro executável. Processo preservado.' }
     Stop-Process -Id $registeredId
+    $process.WaitForExit()
 }
 Remove-Item -LiteralPath $pidFile
 Write-Output 'C4K encerrado.'

@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Preparar episódios a partir de fontes
 status: in_progress
-stopped_at: Automação 0.3 publicada; aguardando configuração da senha e validação real do qBittorrent na porta 8082.
+stopped_at: Autenticação real com qBittorrent 5.3.0 na porta 8082 validada; aguarda teste libraryAdd/download/TV.
 last_updated: "2026-11-16T14:58:34.375Z"
 last_activity: 2026-11-16
 last_activity_desc: biblioteca local 0.2 entregue; 65 checks HTTP e 7 de recuperação aprovados.
@@ -23,7 +23,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-16)
 
 **Core value:** Assistir título preparado no PC pela LAN sem depender de seeders durante a sessão.
-**Current focus:** Phase 3 - automação 0.3 publicada; integração real autenticada pendente.
+**Current focus:** Phase 3 - conexão real autenticada validada após correção do HTTP 204; fluxo download/TV pendente.
 
 ## Current Position
 
@@ -41,6 +41,8 @@ Total plans completed: 1. Sem métricas de execução disponíveis.
 ## Accumulated Context
 
 ### Decisions
+
+- Correção de login: qBittorrent 5.3 retorna HTTP 204 vazio. Cliente agora comprova sessão via app/version; envio de magnets aceita 204. Teste real retornou Conectado: qBittorrent v5.3.0. Credenciais preservadas. Detalhes em debug/qbittorrent-login.md.
 
 - 2026-11-16: usuário escolheu Torrentio e qBittorrent na porta 8082. new/done sem cópias; exclusão física explícita. Configuração protegida com DPAPI. Vídeo de teste migrado para referência direta em done, removido somente vínculo antigo; tokens preservados. Automação desativada até configuração no painel. Provedor respondeu manifest 0.0.15; qBittorrent respondeu 403 sem credenciais.
 
