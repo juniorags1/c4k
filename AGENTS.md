@@ -19,7 +19,7 @@ Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou
 - **Rede:** desempenho precisa ser medido entre PC e TV; nenhuma promessa universal de ausência de travamentos.
 - **Custo:** priorizar software gratuito e equipamento existente; disco e rede dimensionados após medição.
 - **Origem:** arquivos locais, URLs e torrents para os quais o usuário possua autorização de acesso; não incluir credenciais ou fontes reais no repositório.
-- **Escopo atual:** automação 0.3 publicada com Torrentio e qBittorrent 5.3.0 na porta 8082. Incompletos em C:\media\new, catálogo serve diretamente C:\media\done sem cópias. Remover pelo painel apaga vídeo físico mediante confirmação. Credenciais e UAT real de libraryAdd/download pendentes; antecipação por reprodução segue na fase 4.
+- **Escopo atual:** automação 0.3 publicada com Torrentio e qBittorrent 5.3.0 na porta 8082. libraryAdd e download real comprovados. Watched de episódio prepara dois sucessores lançados, com mudança de temporada; aguarda UAT real desse evento. Incompletos em C:\media\new, catálogo serve C:\media\done sem cópias. Exclusão física explícita no painel. Início da reprodução ainda não dispara antecipação.
 
 <!-- GSD:project-end -->
 

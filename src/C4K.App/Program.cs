@@ -101,7 +101,7 @@ app.MapGet("/admin/api/status", () => new
     browserInstallUrl = $"https://web.stremio.com/#/addons?addon={Uri.EscapeDataString(ManifestUrl())}",
     publicUrl, mediaRoot = files.Root, media = repository.Media(), events = repository.Events(),
     imports = repository.Imports(),
-    automation = automation.Public(), downloads = repository.Downloads(), connectionStatus = downloader.ConnectionStatus,
+    automation = automation.Public(), downloads = repository.Downloads(), watchedPlans = repository.WatchedPlans(), connectionStatus = downloader.ConnectionStatus,
     warning = "Adicionar uma série sem episódio explícito prepara S1E1. Remover pelo painel apaga o vídeo físico."
 });
 app.MapPost("/admin/api/automation", async (AutomationInput input, CancellationToken ct) =>

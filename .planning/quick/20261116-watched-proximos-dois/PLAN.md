@@ -1,0 +1,5 @@
+# Watched prepara dois próximos episódios
+
+GSD quick inline. Persistir intenção no mesmo commit SQLite do evento watched de série, usando maior episódio explícito recebido e sem retroceder por eventos repetidos/atrasados. Resolver sequência canônica Cinemeta fora da requisição, ordenar temporada/episódio e respeitar lançamentos. Selecionar os dois sucessores, inclusive mudança de temporada; não inventar números ou incluir especiais da temporada zero. Enfileirar idempotentemente, sem repetir mídia já pronta ou reativar tarefas removidas/falhas silenciosamente. Reavaliar lançamentos futuros a cada seis horas e falhas de metadados em dez minutos. Mostrar resultado no painel. Watched sem episódio explícito fica pendente de identificação; unwatched não apaga arquivos.
+
+Validar fixtures de mudança de temporada, repetição, evento atrasado, fim da lista, episódios futuros e rejeição de metadados errados. Smoke HTTP com automação desativada para não iniciar downloads reais de teste. Publicar preservando tokens/filmes. UAT do evento watched real na TV permanece necessário.

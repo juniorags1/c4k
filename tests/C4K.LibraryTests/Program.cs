@@ -137,6 +137,46 @@ using (var titleJson = JsonDocument.Parse("{\"meta\":{\"id\":\"tt12300742\",\"na
 }
 Check(MediaNames.Display(new("series","tt1234567:2:3","Série")) == "Série — T02E03", "Nome do torrent distingue episódio");
 Check(handler.AddBody.Contains("rename=Fixture+4K") && handler.AddBody.Contains("dn%3DFixture%25204K"), "Título enviado como display name e dn sem renomear arquivo");
+var now = DateTimeOffset.Parse("2026-11-16T18:00:00Z");
+using var episodeJson = JsonDocument.Parse(JsonSerializer.Serialize(new { meta = new { id="tt1234567", videos = new[] {
+    new { id="tt1234567:0:1", released="2020-01-01T00:00:00Z" },
+    new { id="tt1234567:1:1", released="2020-01-01T00:00:00Z" },
+    new { id="tt1234567:1:2", released="2020-01-02T00:00:00Z" },
+    new { id="tt1234567:2:1", released="2021-01-01T00:00:00Z" },
+    new { id="tt1234567:2:2", released="2030-01-01T00:00:00Z" } } } }));
+var episodePlan = EpisodePlanner.Next(episodeJson.RootElement,"tt1234567","tt1234567:1:1",now);
+Check(episodePlan.VideoIds.SequenceEqual(new[]{"tt1234567:1:2","tt1234567:2:1"}), "Watched encontra dois sucessores incluindo próxima temporada");
+Check(EpisodePlanner.Next(episodeJson.RootElement,"tt1234567","tt1234567:2:1",now) is { WaitingForRelease:true,VideoIds.Length:0 }, "Próximo episódio futuro não é baixado");
+Check(EpisodePlanner.Next(episodeJson.RootElement,"tt1234567","tt1234567:2:2",now).VideoIds.Length==0, "Fim da lista não inventa episódios");
+var watchDir=Path.Combine(directory,"watched"); Directory.CreateDirectory(watchDir); var watchRepo=new Repository(watchDir);
+watchRepo.Record("library","series","tt1234567","watched",null,null,"tt1234567:1:1",true);
+var observed=watchRepo.WatchedPlans().Single();
+Check(new Repository(watchDir).WatchedPlans().Single().Anchor=="tt1234567:1:1", "Watched e intenção persistem após reinício");
+watchRepo.ApplyWatched(observed,episodePlan);
+watchRepo.ApplyWatched(observed,episodePlan);
+Check(watchRepo.Downloads().Count==2, "Dois episódios persistidos sem duplicar ao repetir processamento");
+watchRepo.Record("library","series","tt1234567","watched",null,null,"tt1234567:1:2,tt1234567:2:1",true);
+Check(watchRepo.WatchedPlans().Single().Anchor=="tt1234567:2:1", "Marcações em lote usam o último episódio");
+watchRepo.Record("library","series","tt1234567","watched",null,null,"tt1234567:1:1",true);
+Check(watchRepo.WatchedPlans().Single().Anchor=="tt1234567:2:1", "Evento antigo não retrocede acompanhamento");
+watchRepo.ApplyWatched(observed,new(["tt1234567:2:2"],false));
+Check(watchRepo.Downloads().Count==2, "Resposta atrasada de metadados não enfileira sob âncora antiga");
+watchRepo.Record("library","series","tt7654321","watched",null,null,null,true);
+Check(watchRepo.WatchedPlans().Single(p=>p.SeriesId=="tt7654321").State=="NeedsEpisode", "Série inteira sem episódio pede identificação");
+var shared0=downloads.QueueDownload(new("series","tt7654321:1:1","Shared", "magnet:?xt=urn:btih:"+hash,0));
+var shared1=downloads.QueueDownload(new("series","tt7654321:1:2","Shared", "magnet:?xt=urn:btih:"+hash,1));
+downloads.SaveDownload(shared0=shared0 with { Hash=hash,FileIndex=0 });downloads.SaveDownload(shared1 with { Hash=hash,FileIndex=1 });
+var sharedHandler=new QbitFixture(downloadRoot,hash){Adds=1};using var sharedClient=new QbitClient("http://127.0.0.1:8082",sharedHandler);
+await downloadWorker.Process(shared0,sharedClient,CancellationToken.None);
+Check(sharedHandler.Commands.Any(c=>c.Contains("id=0%7C1")&&c.Contains("priority=1"))&&!sharedHandler.Commands.Any(c=>c.Contains("priority=0")), "Pacote compartilhado preserva ambos os episódios selecionados");
+var readyWatchDir=Path.Combine(directory,"watched-ready");Directory.CreateDirectory(readyWatchDir);var readyWatch=new Repository(readyWatchDir);
+readyWatch.Register(new("ready-episode","series","tt1234567","tt1234567:1:2","Ready","video.mp4",1,2));
+readyWatch.Record("library","series","tt1234567","watched",null,null,"tt1234567:1:1",true);
+readyWatch.ApplyWatched(readyWatch.WatchedPlans().Single(),episodePlan);
+Check(readyWatch.Downloads().Single().Request.VideoId=="tt1234567:2:1", "Não baixa novamente episódio já cadastrado como pronto");
+var failedNext=readyWatch.Downloads().Single();readyWatch.SaveDownload(failedNext with {State="Failed",Error="fixture"});
+readyWatch.ApplyWatched(readyWatch.WatchedPlans().Single(),episodePlan);
+Check(readyWatch.Downloads().Single().State=="Failed", "Reavaliação não repete falha de download silenciosamente");
 Console.WriteLine($"PASS: {checks} verificações de migração, proteção, seleção e automação com API simulada.");
 
 sealed class AddResultFixture(HttpStatusCode status, string body) : HttpMessageHandler

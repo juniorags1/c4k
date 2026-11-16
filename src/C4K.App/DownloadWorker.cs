@@ -5,6 +5,9 @@ namespace C4K;
 public sealed class DownloadWorker(Repository repository, MediaFiles files, AutomationSettings settings, Func<QbitClient>? clientFactory = null) : BackgroundService
 {
     private QbitClient Client() => clientFactory?.Invoke() ?? new QbitClient(settings.Current.QbitUrl);
+    private string TorrentDisplay(DownloadJob job) => repository.Downloads().Any(j => j.Id != job.Id &&
+        j.Hash == job.Hash && j.State != "Removed") && job.Request.Type == "series"
+        ? (job.Request.Title ?? job.Request.VideoId.Split(':')[0]) + " — episódios" : MediaNames.Display(job.Request);
     public SemaphoreSlim Gate { get; } = new(1, 1);
     public string ConnectionStatus { get; private set; } = "Configure e teste a conexão com o qBittorrent.";
     private readonly HttpClient sourceHttp = new() { Timeout = TimeSpan.FromSeconds(40), MaxResponseContentBufferSize = 8 * 1024 * 1024 };
@@ -27,6 +30,19 @@ public sealed class DownloadWorker(Repository repository, MediaFiles files, Auto
                 {
                     if (settings.Current.Enabled && !ReferenceEquals(rejectedSettings, settings.Current))
                     {
+                        foreach (var plan in repository.WatchedPlans().Where(p => p.Anchor is not null && p.NextAttempt <= DateTimeOffset.UtcNow))
+                        {
+                            try
+                            {
+                                using var timeout = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken); timeout.CancelAfter(TimeSpan.FromSeconds(8));
+                                using var response = await sourceHttp.GetAsync($"https://v3-cinemeta.strem.io/meta/series/{plan.SeriesId}.json", timeout.Token);
+                                response.EnsureSuccessStatusCode();
+                                using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(timeout.Token));
+                                repository.ApplyWatched(plan, EpisodePlanner.Next(json.RootElement, plan.SeriesId, plan.Anchor!, DateTimeOffset.UtcNow));
+                            }
+                            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { throw; }
+                            catch (Exception e) { repository.ApplyWatched(plan, null, Friendly(e)); }
+                        }
                         using var qbit = Client();
                         var version = await qbit.Connect(settings.Current.Username, settings.Password, stoppingToken);
                         if (!version.StartsWith("v5.", StringComparison.Ordinal)) throw new InvalidOperationException("Integração requer qBittorrent 5.x.");
@@ -84,8 +100,8 @@ public sealed class DownloadWorker(Repository repository, MediaFiles files, Auto
         var torrent = torrents[0];
         if (!torrent.GetProperty("tags").GetString()!.Split(',').Any(t => t.Trim() == "C4K"))
             throw new InvalidOperationException("Este torrent já existe fora do C4K. Não alteramos tarefas externas.");
-        if (job.Request.Title is not null && torrent.TryGetProperty("name", out var torrentName) && torrentName.GetString() != MediaNames.Display(job.Request))
-            await qbit.Post("torrents/rename", new() { ["hash"] = job.Hash!, ["name"] = MediaNames.Display(job.Request) }, ct);
+        if (job.Request.Title is not null && torrent.TryGetProperty("name", out var torrentName) && torrentName.GetString() != TorrentDisplay(job))
+            await qbit.Post("torrents/rename", new() { ["hash"] = job.Hash!, ["name"] = TorrentDisplay(job) }, ct);
         if (!string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(torrent.GetProperty("save_path").GetString()!)), Path.TrimEndingDirectorySeparator(files.Root), StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Torrent fora da pasta done configurada.");
         var contents = await qbit.Get("torrents/files?hash=" + job.Hash, ct);
@@ -101,13 +117,14 @@ public sealed class DownloadWorker(Repository repository, MediaFiles files, Auto
         var target = selected[0]; var fileIndex = target.GetProperty("index").GetInt32();
         if (!job.Selected)
         {
-            // Não modificar seleção de outro episódio que já use o mesmo torrent.
-            if (repository.Downloads().Any(j => j.Id != job.Id && j.Hash == job.Hash && j.State != "Removed"))
-                throw new InvalidOperationException("Outro item usa este pacote. Selecione uma fonte individual para este episódio.");
+            // Dois episódios podem compartilhar o pacote: preservar a união dos índices solicitados.
+            var wanted = repository.Downloads().Where(j => j.Hash == job.Hash && j.State != "Removed" && j.FileIndex is not null)
+                .Select(j => j.FileIndex!.Value).Append(fileIndex).ToHashSet();
+            wanted.IntersectWith(videos.Select(v => v.GetProperty("index").GetInt32()));
             await qbit.Post("torrents/stop", new() { ["hashes"] = job.Hash! }, ct);
-            var other = contents.EnumerateArray().Where(f => f.GetProperty("index").GetInt32() != fileIndex).Select(f => f.GetProperty("index").GetInt32().ToString()).ToArray();
+            var other = contents.EnumerateArray().Where(f => !wanted.Contains(f.GetProperty("index").GetInt32())).Select(f => f.GetProperty("index").GetInt32().ToString()).ToArray();
             if (other.Length > 0) await qbit.Post("torrents/filePrio", new() { ["hash"] = job.Hash!, ["id"] = string.Join('|', other), ["priority"] = "0" }, ct);
-            await qbit.Post("torrents/filePrio", new() { ["hash"] = job.Hash!, ["id"] = fileIndex.ToString(), ["priority"] = "1" }, ct);
+            await qbit.Post("torrents/filePrio", new() { ["hash"] = job.Hash!, ["id"] = string.Join('|', wanted.Order()), ["priority"] = "1" }, ct);
             job = job with { Selected = true, FileIndex = fileIndex, State = "Downloading" }; repository.SaveDownload(job);
             await qbit.Post("torrents/start", new() { ["hashes"] = job.Hash! }, ct); return;
         }

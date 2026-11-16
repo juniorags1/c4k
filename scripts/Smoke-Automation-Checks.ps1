@@ -36,3 +36,7 @@ $posterSeries = @{type='series';metaId='tt1234567';videoId='tt1234567:1:2';title
 Check ((Request 'POST' "$admin/admin/api/media" $posterSeries $auth).Status -eq 200) 'Cadastro de episódio para capa da série'
 $seriesMeta = (Request 'GET' "$posterPrefix/meta/series/tt1234567.json").Body | ConvertFrom-Json
 Check ($seriesMeta.meta.poster -eq 'https://images.metahub.space/poster/medium/tt1234567/img' -and $seriesMeta.meta.videos[0].episode -eq 2) 'Detalhes usam capa da série e preservam episódio'
+$watchedExtra = [Uri]::EscapeDataString('action=watched&videoId=tt1234567:1:2')
+Check ((Request 'GET' "$posterPrefix/library/series/tt1234567/$watchedExtra.json").Status -eq 200) 'Evento watched aceita episódio específico'
+$watchedStatus = (Request 'GET' "$admin/admin/api/status" $null $auth).Body | ConvertFrom-Json
+Check ($watchedStatus.events[0].changedVideos -eq 'tt1234567:1:2' -and $watchedStatus.watchedPlans.Count -eq 0) 'Evento preserva episódio e respeita automação desativada'

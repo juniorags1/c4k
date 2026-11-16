@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 current_phase: 3
 current_phase_name: Preparar episódios a partir de fontes
 status: in_progress
-stopped_at: libraryAdd real, seleção de fonte e download de Bugonia (2025) comprovados; aguarda conclusão e reprodução na TV.
+stopped_at: Watched prepara dois sucessores; versão publicada, aguarda marcação real de episódio no Stremio.
 last_updated: "2026-11-16T14:58:34.375Z"
 last_activity: 2026-11-16
 last_activity_desc: biblioteca local 0.2 entregue; 65 checks HTTP e 7 de recuperação aprovados.
@@ -42,6 +42,8 @@ Total plans completed: 1. Sem métricas de execução disponíveis.
 
 ### Decisions
 
+- 2026-11-16: usuário pediu antecipação a partir de Watched. Implementado evento persistente de episódio específico → dois sucessores canônicos já lançados, com mudança de temporada, dedupe e preservação de pacotes compartilhados. Reconsulta de lançamentos em 6h e falha de metadados em 10min. Sem evento específico não presume último visto. 49 testes de lógica, 53 HTTP e DOM Edge aprovados; UAT real watched pendente. Reprodução start permanece sem antecipação.
+
 - Erro de adição resolvido: API 5.3 devolve contadores JSON. Uma tarefa existente foi retomada por hash, sem duplicar, e entrou em downloading com progresso real. Nome Bugonia (2025) resolvido via Cinemeta e aplicado no painel/torrent; arquivos físicos preservados. Ver debug/qbittorrent-add-name.md.
 
 - Correção de login: qBittorrent 5.3 retorna HTTP 204 vazio. Cliente agora comprova sessão via app/version; envio de magnets aceita 204. Teste real retornou Conectado: qBittorrent v5.3.0. Credenciais preservadas. Detalhes em debug/qbittorrent-login.md.
@@ -73,6 +75,7 @@ Usuário confirmou reprodução básica na TCL. Duração, seek, áudio/legendas
 
 | # | Description | Date | Commit | Directory |
 |---|---|---|---|---|
+| 20261116-watched-proximos-dois | Preparar próximos dois episódios ao marcar Watched | 2026-11-16 | ver histórico Git | [watched-proximos-dois](./quick/20261116-watched-proximos-dois/) |
 | 20261116-recadastro-filme | Substituir cadastro de teste por IMDb usando o mesmo vídeo em done | 2026-11-16 | ver histórico Git | [recadastro-filme](./quick/20261116-recadastro-filme/) |
 | 261115-unh | Investigar e planejar addon Stremio com pre-download de episodios | 2026-11-15 | 7d1d9a0 | [261115-unh-investigar-e-planejar-addon-stremio-com-](./quick/261115-unh-investigar-e-planejar-addon-stremio-com-/) |
 | 261116-d16 | Limpar referencias a integracao descartada em toda a documentacao | 2026-11-16 | e8a73e1 | [261116-d16-limpar-referencias-a-integracao-descarta](./quick/261116-d16-limpar-referencias-a-integracao-descarta/) |
