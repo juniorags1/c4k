@@ -2,6 +2,15 @@
 
 Addon Stremio e servidor local .NET para preparar mídia no PC e reproduzir na TV. **Versão 0.3: automação com qBittorrent**, seleção de fontes 4K e catálogo sem cópias. Antecipação por evento de reprodução permanece na próxima fase.
 
+## Requisitos
+
+- Windows 11 x64 para executar e testar a integração completa.
+- SDK .NET indicado em `global.json` para desenvolver ou compilar. O executável publicado é self-contained e dispensa SDK, Node e Docker.
+- qBittorrent 5.x com Interface Web local para downloads e verificação de exclusões.
+- Stremio e PC na mesma rede; PC ligado e sem suspensão durante downloads e reprodução.
+
+Use apenas arquivos e fontes para os quais você possua autorização de acesso. O repositório não inclui mídia, credenciais ou fontes privadas.
+
 ## Iniciar no PC
 
 Com SDK .NET 10.0.400 instalado, na raiz do projeto:
@@ -24,7 +33,9 @@ O painel mostra o resultado em **Próximos episódios**. Falha de consulta de me
 
 Filmes e séries cadastrados com IMDb incluem capa HTTPS no catálogo e nos detalhes do addon. As imagens vêm do MetaHub e dependem da internet ou do cache do Stremio; o vídeo continua sendo servido pelo PC. IDs locais sem IMDb não recebem uma capa presumida. Reabra o catálogo para atualizar imagens em cache.
 
-Magnets são enviados pela API, com arquivos incompletos em `C:\media\new` e finalizados em `C:\media\done`. Não é necessário gravar magnets como arquivos na pasta monitorada. Caminhos são definidos por nova tarefa; tarefas antigas e preferências globais do qBittorrent não são alteradas. O catálogo referencia diretamente o arquivo completo de done, após confirmar conclusão e ausência de movimentação/verificação. Pacotes exigem índice de vídeo válido ou um único vídeo; nenhuma escolha implícita pelo maior arquivo. Episódios no mesmo pacote mantêm a união dos índices solicitados. A publicação aguarda conclusão de todos os arquivos selecionados no torrent.
+As pastas de incompletos e completos são configuráveis no painel e ficam salvas após reiniciar. A troca não move arquivos ou torrents existentes. Para trocar a pasta de completos, conclua as tarefas pendentes e coloque os arquivos cadastrados no destino mantendo as subpastas.
+
+Magnets são enviados pela API, por padrão com arquivos incompletos em `C:\media\new` e finalizados em `C:\media\done`. Não é necessário gravar magnets como arquivos na pasta monitorada. Caminhos são definidos por nova tarefa; tarefas antigas e preferências globais do qBittorrent não são alteradas. O catálogo referencia diretamente o arquivo completo de done, após confirmar conclusão e ausência de movimentação/verificação. Pacotes exigem índice de vídeo válido ou um único vídeo; nenhuma escolha implícita pelo maior arquivo. Episódios no mesmo pacote mantêm a união dos índices solicitados. A publicação aguarda conclusão de todos os arquivos selecionados no torrent.
 
 **Apagar vídeo e retirar do catálogo exclui fisicamente o vídeo de done**, mediante confirmação. Não exclui diretórios nem outros arquivos do pacote. A tarefa própria é removida do qBittorrent com `deleteFiles=false` antes da exclusão exata; tarefas externas, compartilhamento e arquivos em uso bloqueiam a operação. A conexão com qBittorrent é necessária para verificar essa proteção. O cadastro manual aceita somente arquivos já completos na raiz done, sem copiar. Importações antigas com cópia não são retomadas pela versão 0.3. MP4, MKV, WEBM e M4V são aceitos; não há transcodificação.
 
@@ -63,6 +74,12 @@ Em **Rede e links de acesso**, salve o IP deste PC para persistir em `network.js
 
 O painel mostra os últimos 100 eventos recebidos; banco retém até 5.000. A presença de `libraryAdd` ou `start` só demonstra um evento recebido: requests simuladas não aprovam compatibilidade com Stremio Android TV. Não há importação de biblioteca antiga ou replay garantido. Reprodução por player externo pode mudar os eventos disponíveis.
 
+## Limpeza e cancelamento
+
+Novos eventos `watched` de filmes ou episódios individuais agendam a exclusão física e a remoção do catálogo após 72 horas, mesmo com downloads automáticos desativados. `unwatched` cancela a limpeza pendente. Os agendamentos sobrevivem ao reinício e aparecem no painel. Não há limpeza retroativa do histórico antigo. Arquivos em uso ou ligados a tarefas externas são preservados; pacotes compartilhados aguardam os demais itens cadastrados vencerem. Falhas são tentadas novamente após uma hora. O evento ainda depende do suporte do cliente Stremio.
+
+Downloads com falha oferecem **Tentar novamente** e **Cancelar**. Cancelar remove o item da fila exibida, sem apagar arquivos ou alterar a tarefa existente no qBittorrent. Eventos automáticos não reativam esse item; uma solicitação manual explícita pode adicioná-lo novamente.
+
 ## Verificação automatizada
 
 ```powershell
@@ -83,3 +100,23 @@ Para iniciar em segundo plano: `powershell -NoProfile -ExecutionPolicy Bypass -F
 2. Instalar o manifest; reproduzir vídeo completo, testar áudio/legendas, três seeks e 60 minutos de sessão.
 3. Adicionar/remover obra na biblioteca e iniciar/pausar/encerrar vídeos por fonte C4K e outra fonte; consultar eventos no painel.
 4. Reprodução básica na TCL foi confirmada pelo usuário. Registrar resultados detalhados conforme [.planning/phases/01-stremio-compatibility/01-VALIDATION.md](.planning/phases/01-stremio-compatibility/01-VALIDATION.md); duração, legendas, autoplay e eventos específicos permanecem como verificações separadas.
+
+## Estrutura do repositório
+
+- `src/C4K.App`: servidor, addon, painel e integração com qBittorrent.
+- `tests/C4K.LibraryTests`: verificações de persistência, automação e arquivos.
+- `scripts`: inicialização, encerramento e testes HTTP.
+- `.planning`: histórico de decisões e limites de validação; documentos antigos podem descrever abordagens substituídas.
+
+Veja [CONTRIBUTING.md](CONTRIBUTING.md) para desenvolver e [SECURITY.md](SECURITY.md) para cuidados com dados e acesso. O GitHub Actions valida o projeto em Windows a cada push e pull request.
+
+## Primeiro envio ao GitHub
+
+Crie um repositório vazio na sua conta, sem gerar README, licença ou `.gitignore` pelo site. Na raiz deste projeto, substitua `SEU-USUARIO` pelo seu usuário:
+
+```powershell
+git remote add origin https://github.com/SEU-USUARIO/c4k.git
+git push -u origin main
+```
+
+O projeto ainda não define uma licença de distribuição. O titular deve escolher uma antes de autorizar reutilização por terceiros.

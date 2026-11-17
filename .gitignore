@@ -8,3 +8,38 @@ appsettings.Local.json
 media/
 downloads/
 data/
+
+# Ferramentas e configurações locais
+.codex/
+.idea/
+.env
+.env.*
+!.env.example
+
+# Dados privados do servidor e bancos locais
+secrets.json
+automation.json
+library.json
+network.json
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.pid
+
+# Certificados, chaves e fontes de mídia locais
+*.pfx
+*.p12
+*.key
+*.pem
+*.torrent
+*.magnet
+*.mp4
+*.mkv
+*.webm
+*.m4v
+
+# Arquivos do sistema
+Thumbs.db
+.DS_Store
