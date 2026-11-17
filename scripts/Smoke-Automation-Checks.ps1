@@ -73,3 +73,8 @@ $unwatchedExtra=[Uri]::EscapeDataString('action=unwatched')
 Check ((Request 'GET' "$cleanupPrefix/library/movie/tt7654321/$unwatchedExtra.json").Status -eq 200) 'Unwatched de filme aceito'
 $cleanStatus=(Request 'GET' "$admin/admin/api/status" $null $auth).Body | ConvertFrom-Json
 Check (@($cleanStatus.cleanup | Where-Object videoId -eq 'tt7654321').Count -eq 0) 'Unwatched cancela limpeza pela API'
+
+Check ((Request 'POST' "$admin/admin/api/downloads/cancel" @{id='movie:tt7654321'}).Status -eq 403) 'Cancelar exige autenticação administrativa'
+Check ((Request 'POST' "$admin/admin/api/downloads/cancel" @{id='unknown'} $auth).Status -eq 404) 'Cancelar tarefa inexistente retorna 404'
+Check ((Request 'POST' "$admin/admin/api/downloads/cancel" @{id='movie:tt7654321'} $auth).Status -eq 409) 'Cancelar rejeita tarefa ativa'
+Check ($main.Body.Contains("n('button','Cancelar')") -and $main.Body.Contains("api('downloads/cancel'")) 'Painel apresenta Cancelar para downloads com falha'

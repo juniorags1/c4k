@@ -25,7 +25,7 @@ public sealed partial class Repository
         request = NormalizeDownload(request);
         using var db = Open(); using var tx = db.BeginTransaction(); InsertDownload(db, tx, request); tx.Commit();
         var existing = Downloads().Single(j => j.Id == request.Type + ":" + request.VideoId);
-        if (existing.State is "Failed" or "Removed")
+        if (existing.State is "Failed" or "Removed" or "Cancelled")
         {
             existing = new DownloadJob(existing.Id, request);
             SaveDownload(existing);
@@ -47,6 +47,14 @@ public sealed partial class Repository
         var job = new DownloadJob(request.Type + ":" + request.VideoId, request);
         cmd.CommandText = "INSERT OR IGNORE INTO downloads(id,body) VALUES($id,$body)";
         cmd.Parameters.AddWithValue("$id", job.Id); cmd.Parameters.AddWithValue("$body", JsonSerializer.Serialize(job)); cmd.ExecuteNonQuery();
+    }
+    // Called under DownloadWorker.Gate by the administrative endpoint.
+    public bool CancelFailedDownload(string id)
+    {
+        var job = Downloads().FirstOrDefault(j => j.Id == id);
+        if (job is null || job.State is not ("Failed" or "Cancelled")) return false;
+        SaveDownload(job with { State = "Cancelled", Error = null });
+        return true;
     }
     public void SaveDownload(DownloadJob job)
     {

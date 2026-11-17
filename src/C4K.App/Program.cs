@@ -135,6 +135,18 @@ app.MapPost("/admin/api/downloads", async (DownloadRequest input, CancellationTo
     try { return Results.Accepted(value: repository.QueueDownload(input)); }
     finally { downloader.Gate.Release(); }
 });
+app.MapPost("/admin/api/downloads/cancel", async (DownloadRetry input, CancellationToken ct) =>
+{
+    await downloader.Gate.WaitAsync(ct);
+    try
+    {
+        if (!repository.Downloads().Any(j => j.Id == input.Id)) return Results.NotFound();
+        return repository.CancelFailedDownload(input.Id)
+            ? Results.Ok(new { ok = true })
+            : Results.Conflict(new { error = "Somente downloads com falha podem ser cancelados nesta lista." });
+    }
+    finally { downloader.Gate.Release(); }
+});
 app.MapPost("/admin/api/downloads/retry", async (DownloadRetry input, CancellationToken ct) =>
 {
     await downloader.Gate.WaitAsync(ct);

@@ -70,6 +70,16 @@ foreach (var invalid in new[] { "", "relative", @"\\server\media", Path.GetPathR
     catch (ArgumentException) { rejected = true; }
     Check(rejected && automation.Current.NewDirectory == customNew, "Pasta inválida recusada sem alterar configuração");
 }
+var cancelDir = Path.Combine(directory, "cancel-failed"); Directory.CreateDirectory(cancelDir);
+var cancelRepo = new Repository(cancelDir);
+var cancelJob = cancelRepo.QueueDownload(new("movie", "tt1234567"));
+Check(!cancelRepo.CancelFailedDownload(cancelJob.Id) && !cancelRepo.CancelFailedDownload("unknown"), "Cancelar rejeita tarefa ativa e inexistente");
+cancelRepo.SaveDownload(cancelJob with { State = "Failed", Hash = "fixture-hash", Error = "Fixture" });
+Check(cancelRepo.CancelFailedDownload(cancelJob.Id) && cancelRepo.CancelFailedDownload(cancelJob.Id), "Cancelar falha é idempotente");
+Check(new Repository(cancelDir).Downloads().Single() is { State:"Cancelled", Hash:"fixture-hash", Error:null }, "Cancelamento persiste após reinício e mantém referência do torrent");
+cancelRepo.Record("library", "movie", "tt1234567", "libraryAdd", null, null, null, true);
+Check(cancelRepo.Downloads().Single().State == "Cancelled", "Evento automático não reativa cancelado");
+Check(cancelRepo.QueueDownload(new("movie", "tt1234567")).State == "Queued", "Pedido manual explícito permite solicitar novamente");
 var downloads = new Repository(automationDirectory);
 downloads.Record("library", "series", "tt1234567", "libraryAdd", null, null, null, true);
 downloads.Record("library", "series", "tt1234567", "libraryAdd", null, null, null, true);
