@@ -46,7 +46,7 @@ Revisão autorizada em 2026-11-15: usuário escolheu Stremio principal, informou
 - **Rede:** desempenho precisa ser medido entre PC e TV; nenhuma promessa universal de ausência de travamentos.
 - **Custo:** priorizar software gratuito e equipamento existente; disco e rede dimensionados após medição.
 - **Origem:** arquivos locais, URLs e torrents para os quais o usuário possua autorização de acesso; não incluir credenciais ou fontes reais no repositório.
-- **Escopo atual:** automação 0.3 implementada com Torrentio e qBittorrent 5.x local na porta 8082. new/done sem cópias; exclusão física explícita no painel. Integração real aguarda credenciais e prova de libraryAdd na TV. Antecipação por reprodução segue na fase 4; UAT de duração/autoplay/eventos detalhados pendente.
+- **Escopo atual:** automação 0.3 implementada com Torrentio e qBittorrent 5.x local na porta 8082. new/done sem cópias; exclusão física pelo painel e limpeza automática 72h após novos eventos watched individuais, cancelada por unwatched. Integração real aguarda credenciais e prova de libraryAdd na TV. Antecipação por reprodução segue na fase 4; UAT de duração/autoplay/eventos detalhados pendente.
 
 ## Key Decisions
 

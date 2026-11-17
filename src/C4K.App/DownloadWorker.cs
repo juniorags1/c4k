@@ -28,6 +28,7 @@ public sealed class DownloadWorker(Repository repository, MediaFiles files, Auto
                 await Gate.WaitAsync(stoppingToken);
                 try
                 {
+                    await Cleanup(DateTimeOffset.UtcNow, stoppingToken);
                     if (settings.Current.Enabled && !ReferenceEquals(rejectedSettings, settings.Current))
                     {
                         foreach (var plan in repository.WatchedPlans().Where(p => (p.Anchor is not null || p.FromBeginning) && p.NextAttempt <= DateTimeOffset.UtcNow))
@@ -151,36 +152,70 @@ public sealed class DownloadWorker(Repository repository, MediaFiles files, Auto
         await Gate.WaitAsync(ct);
         try
         {
-            var item = repository.Media().FirstOrDefault(m => m.Id == id); if (item is null) return false;
-            var path = files.Resolve(item.FileName) ?? throw new InvalidOperationException("Arquivo ausente ou fora da pasta válida. Catálogo mantido.");
-            if (repository.Media().Any(m => m.Id != id && string.Equals(m.FileName, item.FileName, StringComparison.OrdinalIgnoreCase)))
-                throw new InvalidOperationException("Arquivo compartilhado por outro item do catálogo.");
-            var job = repository.Downloads().FirstOrDefault(j => j.Request.VideoId == item.VideoId && j.Request.Type == item.Type);
-            using var qbit = Client();
-            // Mesmo cadastros manuais podem pertencer a torrents: não apagar sob uma tarefa externa ativa.
-            await qbit.Connect(settings.Current.Username, settings.Password, ct);
-            var torrents = await qbit.Get("torrents/info", ct);
-            foreach (var torrent in torrents.EnumerateArray())
-            {
-                var hash = torrent.GetProperty("hash").GetString()!;
-                var entries = await qbit.Get("torrents/files?hash=" + hash, ct);
-                var save = torrent.GetProperty("save_path").GetString()!;
-                var ownsPath = entries.EnumerateArray().Any(f => string.Equals(Path.GetFullPath(Path.Combine(save, f.GetProperty("name").GetString()!)), path, StringComparison.OrdinalIgnoreCase));
-                if (!ownsPath) continue;
-                if (job?.Hash != hash || !torrent.GetProperty("tags").GetString()!.Split(',').Any(t => t.Trim() == "C4K"))
-                    throw new InvalidOperationException("Arquivo pertence a uma tarefa externa do qBittorrent. Remova essa tarefa mantendo os arquivos antes de apagar pelo C4K.");
-                if (repository.Downloads().Any(j => j.Id != job.Id && j.Hash == hash && j.State != "Removed"))
-                    throw new InvalidOperationException("Outro item usa o mesmo torrent.");
-                await qbit.Post("torrents/delete", new() { ["hashes"] = hash, ["deleteFiles"] = "false" }, ct);
-            }
-            // Abre sem compartilhar: impede exclusão durante reprodução local ativa.
-            using (File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }
-            File.Delete(path);
-            repository.RemoveMedia(id);
-            if (job is not null) repository.SaveDownload(job with { State = "Removed" });
-            return true;
+            return await DeleteCore(id, ct);
         }
         finally { Gate.Release(); }
+    }
+    private async Task<bool> DeleteCore(string id, CancellationToken ct, DateTimeOffset? cleanupNow = null)
+    {
+        var item = repository.Media().FirstOrDefault(m => m.Id == id); if (item is null) return false;
+        var path = files.Resolve(item.FileName) ?? throw new InvalidOperationException("Arquivo ausente ou fora da pasta válida. Catálogo mantido.");
+        if (repository.Media().Any(m => m.Id != id && string.Equals(m.FileName, item.FileName, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("Arquivo compartilhado por outro item do catálogo.");
+        var job = repository.Downloads().FirstOrDefault(j => j.Request.VideoId == item.VideoId && j.Request.Type == item.Type);
+        using var qbit = Client();
+        // Mesmo cadastros manuais podem pertencer a torrents: não apagar sob uma tarefa externa ativa.
+        await qbit.Connect(settings.Current.Username, settings.Password, ct);
+        var torrents = await qbit.Get("torrents/info", ct);
+        foreach (var torrent in torrents.EnumerateArray())
+        {
+            var hash = torrent.GetProperty("hash").GetString()!;
+            var entries = await qbit.Get("torrents/files?hash=" + hash, ct);
+            var save = torrent.GetProperty("save_path").GetString()!;
+            var ownsPath = entries.EnumerateArray().Any(f => string.Equals(Path.GetFullPath(Path.Combine(save, f.GetProperty("name").GetString()!)), path, StringComparison.OrdinalIgnoreCase));
+            if (!ownsPath) continue;
+            if (job?.Hash != hash || !torrent.GetProperty("tags").GetString()!.Split(',').Any(t => t.Trim() == "C4K"))
+                throw new InvalidOperationException("Arquivo pertence a uma tarefa externa do qBittorrent. Remova essa tarefa mantendo os arquivos antes de apagar pelo C4K.");
+            var due = repository.CleanupEntries().Where(e => cleanupNow is not null && !e.Completed && e.DeleteAfter <= cleanupNow)
+                .Select(e => e.VideoId).ToHashSet();
+            if (repository.Downloads().Any(j => j.Id != job.Id && j.Hash == hash && j.State is not ("Removed" or "Cancelled") &&
+                (cleanupNow is null || j.State != "Ready" || !due.Contains(j.Request.VideoId))))
+                throw new InvalidOperationException("Outro item usa o mesmo torrent.");
+            await qbit.Post("torrents/delete", new() { ["hashes"] = hash, ["deleteFiles"] = "false" }, ct);
+        }
+        // Abre sem compartilhar: impede exclusão durante reprodução local ativa.
+        using (File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }
+        var subtitle = repository.Subtitle(id);
+        var subtitlePath = subtitle is null ? null : files.ResolveSubtitle(subtitle.FileName);
+        if (subtitlePath is not null && !repository.Media().Any(m => m.Id != id && repository.Subtitle(m.Id)?.FileName == subtitle!.FileName))
+            File.Delete(subtitlePath);
+        File.Delete(path);
+        repository.RemoveMedia(id);
+        if (job is not null) repository.SaveDownload(job with { State = "Removed" });
+        return true;
+    }
+
+    // Caller holds Gate, including event ingestion: unwatched cannot race deletion.
+    public async Task RunCleanup(DateTimeOffset now, CancellationToken ct)
+    {
+        await Gate.WaitAsync(ct);
+        try { await Cleanup(now, ct); }
+        finally { Gate.Release(); }
+    }
+    private async Task Cleanup(DateTimeOffset now, CancellationToken ct)
+    {
+        foreach (var entry in repository.CleanupEntries().Where(e => !e.Completed && e.DeleteAfter <= now && e.NextAttempt <= now))
+        {
+            var item = repository.Media().FirstOrDefault(m => m.VideoId == entry.VideoId && m.Type == entry.Type);
+            if (item is null) continue;
+            try
+            {
+                await DeleteCore(item.Id, ct, now);
+                repository.CleanupResult(entry.VideoId, now, null);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+            catch (Exception e) { repository.CleanupResult(entry.VideoId, now, Friendly(e)); }
+        }
     }
     public override void Dispose() { sourceHttp.Dispose(); Gate.Dispose(); base.Dispose(); }
 }

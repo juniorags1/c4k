@@ -115,7 +115,7 @@ app.MapGet("/admin/api/status", () => new
     browserInstallUrl = $"https://web.stremio.com/#/addons?addon={Uri.EscapeDataString(ManifestUrl())}",
     publicUrl, mediaRoot = files.Root, media = repository.Media(), events = repository.Events(),
     imports = repository.Imports(),
-    automation = automation.Public(), downloads = repository.Downloads(), watchedPlans = repository.WatchedPlans(), connectionStatus = downloader.ConnectionStatus,
+    cleanup = repository.CleanupEntries().Where(e => !e.Completed), automation = automation.Public(), downloads = repository.Downloads(), watchedPlans = repository.WatchedPlans(), connectionStatus = downloader.ConnectionStatus,
     warning = "Adicionar uma série prepara os dois primeiros episódios lançados. Remover pelo painel apaga o vídeo físico."
 });
 app.MapPost("/admin/api/automation", async (AutomationInput input, CancellationToken ct) =>
@@ -298,7 +298,7 @@ addon.MapGet("/stream/{type}/{id}.json", (string type, string id) =>
             behaviorHints = new { notWebReady = true, bingeGroup = "c4k-local", filename = Path.GetFileName(item.FileName), videoSize = new FileInfo(files.Resolve(item.FileName)!).Length } } }
     });
 });
-addon.MapGet("/{resource}/{type}/{id}/{extra}.json", (string resource, string type, string id, string extra) =>
+addon.MapGet("/{resource}/{type}/{id}/{extra}.json", async (string resource, string type, string id, string extra, CancellationToken ct) =>
 {
     if (resource is not ("player" or "library") || type is not ("movie" or "series") || !MediaFiles.ValidId(id) || extra.Length > 4096)
         return Results.BadRequest();
@@ -316,7 +316,9 @@ addon.MapGet("/{resource}/{type}/{id}/{extra}.json", (string resource, string ty
     else if (action is not ("libraryAdd" or "libraryRemove" or "watched" or "unwatched")) return Results.BadRequest();
     var videoIds = Value("videoId");
     if (videoIds.Length > 0 && (videoIds.Split(',').Length > 100 || videoIds.Split(',').Any(v => !MediaFiles.ValidId(v)))) return Results.BadRequest();
-    repository.Record(resource, type, id, action, time, duration, videoIds.Length == 0 ? null : videoIds, automation.Current.Enabled);
+    await downloader.Gate.WaitAsync(ct);
+    try { repository.Record(resource, type, id, action, time, duration, videoIds.Length == 0 ? null : videoIds, automation.Current.Enabled); }
+    finally { downloader.Gate.Release(); }
     return Results.Json(new { });
 }).RequireRateLimiting("events");
 app.MapMethods("/m/{token}/{id}", ["GET", "HEAD"], (string token, string id) =>

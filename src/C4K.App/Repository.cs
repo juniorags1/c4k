@@ -27,6 +27,7 @@ public sealed partial class Repository
         InitializeLibrary();
         InitializeDownloads();
         InitializeWatched();
+        InitializeCleanup();
     }
 
     private SqliteConnection Open() { var db = new SqliteConnection(connectionString); db.Open(); return db; }
@@ -74,6 +75,8 @@ public sealed partial class Repository
         }
         if (queueDownload && resource == "library" && type == "series" && action == "watched")
             ObserveWatched(db, transaction, id.Split(':')[0], videos ?? (id.Contains(':') ? id : null));
+        if (resource == "library" && action is "watched" or "unwatched")
+            ObserveCleanup(db, transaction, type, id, action, videos);
         transaction.Commit();
     }
 

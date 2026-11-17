@@ -116,6 +116,66 @@ using var deleting = new DownloadWorker(downloads, mediaFiles, automation, () =>
 Check(await deleting.Delete(video.Id, CancellationToken.None), "Exclusão física de fixture gerenciada");
 Check(!File.Exists(Path.Combine(downloadRoot,"video.mp4")) && File.Exists(Path.Combine(downloadRoot,"other.mp4")), "Apaga só o vídeo registrado, mantém outro arquivo do pacote");
 Check(downloads.Media().Count == 0 && downloads.Downloads().Single(j=>j.Id==queued.Id).State == "Removed", "Exclusão retira catálogo e impede republicação");
+// Real deletion only in isolated fixtures; injected time avoids waiting 72 hours.
+var cleanDir = Path.Combine(directory, "cleanup"); Directory.CreateDirectory(cleanDir);
+var cleanRoot = Path.Combine(cleanDir, "done"); Directory.CreateDirectory(cleanRoot);
+var cleanRepo = new Repository(cleanDir);
+var cleanSettings = new AutomationSettings(cleanDir);
+var cleanFiles = new MediaFiles(cleanRoot);
+using var cleaner = new DownloadWorker(cleanRepo, cleanFiles, cleanSettings,
+    () => new QbitClient("http://127.0.0.1:8082", new QbitFixture(cleanRoot, hash)));
+foreach (var fixture in new[] { ("movie", "tt1111111", "movie.mp4"), ("series", "tt2222222:1:1", "episode.mp4"), ("series", "tt2222222:1:2", "keep.mp4") })
+{
+    await File.WriteAllBytesAsync(Path.Combine(cleanRoot, fixture.Item3), [1,2,3,4]);
+    cleanRepo.Register(new(fixture.Item2, fixture.Item1, fixture.Item2.Split(':')[0], fixture.Item2, "Fixture", fixture.Item3, null, null));
+}
+cleanRepo.Record("library", "movie", "tt1111111", "watched", null, null, null);
+cleanRepo.Record("library", "series", "tt2222222", "watched", null, null, "tt2222222:1:1");
+var movieCleanup = cleanRepo.CleanupEntries().Single(e => e.Type == "movie");
+Check(movieCleanup.DeleteAfter - movieCleanup.WatchedAt == TimeSpan.FromDays(3), "Prazo exato de 72 horas");
+cleanRepo.Record("library", "movie", "tt1111111", "watched", null, null, null);
+Check(cleanRepo.CleanupEntries().Single(e => e.Type == "movie").DeleteAfter == movieCleanup.DeleteAfter, "Watched duplicado não adia limpeza");
+cleanRepo.Record("library", "series", "tt2222222", "watched", null, null, null);
+cleanRepo.Record("library", "series", "tt2222222", "watched", null, null, "tt9999999:1:1");
+Check(cleanRepo.CleanupEntries().Count == 2, "Série genérica ou episódio de outra série não agenda exclusão");
+Check(new Repository(cleanDir).CleanupEntries().Count == 2, "Agendamento persiste após reinício");
+await cleaner.RunCleanup(movieCleanup.DeleteAfter.AddSeconds(-1), CancellationToken.None);
+Check(cleanRepo.Media().Count == 3, "Nada apagado antes do prazo");
+cleanRepo.Record("library", "movie", "tt1111111", "unwatched", null, null, null);
+await cleaner.RunCleanup(movieCleanup.DeleteAfter.AddMinutes(1), CancellationToken.None);
+Check(cleanRepo.Media().Select(m => m.VideoId).Order().SequenceEqual(new[] { "tt1111111", "tt2222222:1:2" }), "Limpeza apaga só episódio vencido e preserva unwatched e não assistido");
+Check(!File.Exists(Path.Combine(cleanRoot, "episode.mp4")) && File.Exists(Path.Combine(cleanRoot, "movie.mp4")), "Limpeza remove arquivo físico com downloads automáticos desativados");
+Check(cleanRepo.CleanupEntries().Single().Completed, "Conclusão persistida sem republicar limpeza");
+cleanRepo.Record("library", "movie", "tt1111111", "watched", null, null, null);
+var movieAgain = cleanRepo.CleanupEntries().Single(e => e.Type == "movie");
+using (File.Open(Path.Combine(cleanRoot, "movie.mp4"), FileMode.Open, FileAccess.Read, FileShare.None))
+    await cleaner.RunCleanup(movieAgain.DeleteAfter, CancellationToken.None);
+Check(cleanRepo.CleanupEntries().Single(e => e.Type == "movie") is { Completed:false, Error:not null } && cleanRepo.Media().Count == 2,
+    "Arquivo ocupado preservado com falha e nova tentativa persistidas");
+await cleaner.RunCleanup(movieAgain.DeleteAfter.AddHours(1), CancellationToken.None);
+Check(cleanRepo.Media().Single().VideoId == "tt2222222:1:2", "Nova tentativa limpa após liberar arquivo");
+await cleaner.RunCleanup(movieAgain.DeleteAfter.AddDays(1), CancellationToken.None);
+Check(File.Exists(Path.Combine(cleanRoot, "keep.mp4")), "Execução repetida preserva arquivo não assistido");
+var sharedDir = Path.Combine(directory, "cleanup-shared"); Directory.CreateDirectory(sharedDir);
+var sharedRepo = new Repository(sharedDir);
+foreach (var pair in new[] { ("tt3333333:1:1", "video.mp4"), ("tt3333333:1:2", "other.mp4") })
+{
+    await File.WriteAllBytesAsync(Path.Combine(sharedDir, pair.Item2), [1,2,3,4]);
+    sharedRepo.Register(new(pair.Item1, "series", "tt3333333", pair.Item1, "Fixture", pair.Item2, 1, 1));
+    var pending = sharedRepo.QueueDownload(new("series", pair.Item1));
+    sharedRepo.SaveDownload(pending with { Hash = hash, State = "Ready" });
+}
+sharedRepo.Record("library", "series", "tt3333333", "watched", null, null, "tt3333333:1:1");
+var sharedDue = sharedRepo.CleanupEntries().Single().DeleteAfter;
+var cleanupSharedHandler = new QbitFixture(sharedDir, hash) { Adds = 1, Complete = true };
+using var sharedCleaner = new DownloadWorker(sharedRepo, new MediaFiles(sharedDir), new AutomationSettings(sharedDir),
+    () => new QbitClient("http://127.0.0.1:8082", cleanupSharedHandler));
+await sharedCleaner.RunCleanup(sharedDue, CancellationToken.None);
+Check(sharedRepo.Media().Count == 2 && !cleanupSharedHandler.Commands.Any(c => c.Contains("/delete")), "Pacote preservado enquanto outro episódio não foi assistido");
+sharedRepo.Record("library", "series", "tt3333333", "watched", null, null, "tt3333333:1:2");
+await sharedCleaner.RunCleanup(sharedDue.AddHours(2), CancellationToken.None);
+Check(sharedRepo.Media().Count == 0 && cleanupSharedHandler.Commands.Count(c => c.Contains("/delete")) == 1 &&
+    cleanupSharedHandler.Commands.Any(c => c.Contains("deleteFiles=false")), "Pacote vencido remove tarefa uma vez e apaga apenas vídeos assistidos");
 foreach (var modern in new[] { true, false })
 {
     using var authClient = new QbitClient("http://127.0.0.1:8082", new AuthenticationFixture(modern));
@@ -237,7 +297,7 @@ sealed class QbitFixture(string root, string hash) : HttpMessageHandler
     {
         var path = request.RequestUri!.AbsolutePath;
         var body = request.Content is null ? "" : await request.Content.ReadAsStringAsync(cancellationToken);
-        if (request.Method == HttpMethod.Post) { Commands.Add(path+"?"+body); if(path.EndsWith("/add")){Adds++;AddBody=body;} return Response("Ok."); }
+        if (request.Method == HttpMethod.Post) { Commands.Add(path+"?"+body); if(path.EndsWith("/add")){Adds++;AddBody=body;} if(path.EndsWith("/delete")) Adds=0; return Response("Ok."); }
         if (path.EndsWith("/info")) return Response(JsonSerializer.Serialize(Adds==0 ? Array.Empty<object>() : new object[] {new { hash, tags="C4K", save_path=root, state=Moving?"moving":"stalledUP", amount_left=Complete?0:4 }}));
         if (path.EndsWith("/files")) return Response(JsonSerializer.Serialize(new[] {
             new { index=0,name="other.mp4",progress=0.0,size=4 },new { index=1,name="video.mp4",progress=Complete?1.0:0.5,size=4 } }));

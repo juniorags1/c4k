@@ -62,3 +62,14 @@ $config.newDirectory='relative'
 Check ((Request 'POST' "$admin/admin/api/automation" $config $auth).Status -eq 400) 'Pasta de incompletos relativa recusada'
 Check ((Request 'POST' "$admin/admin/api/library-root" @{root=$otherRoot} $auth).Status -eq 409) 'Troca de completos bloqueada com download pendente'
 Check ($main.Body.Contains('id="newDirectory"') -and $main.Body.Contains('id="completedDirectory"')) 'Painel exp?e ambas as pastas'
+
+$cleanupPrefix=$customState.manifestUrl.Replace('/manifest.json','')
+$watchedExtra=[Uri]::EscapeDataString('action=watched')
+Check ((Request 'GET' "$cleanupPrefix/library/movie/tt7654321/$watchedExtra.json").Status -eq 200) 'Watched de filme aceito'
+$cleanStatus=(Request 'GET' "$admin/admin/api/status" $null $auth).Body | ConvertFrom-Json
+$scheduled=@($cleanStatus.cleanup | Where-Object videoId -eq 'tt7654321')
+Check ($scheduled.Count -eq 1 -and ([DateTimeOffset]::Parse($scheduled[0].deleteAfter)-[DateTimeOffset]::Parse($scheduled[0].watchedAt)).TotalHours -eq 72) 'HTTP agenda limpeza em 72 horas com downloads desativados'
+$unwatchedExtra=[Uri]::EscapeDataString('action=unwatched')
+Check ((Request 'GET' "$cleanupPrefix/library/movie/tt7654321/$unwatchedExtra.json").Status -eq 200) 'Unwatched de filme aceito'
+$cleanStatus=(Request 'GET' "$admin/admin/api/status" $null $auth).Body | ConvertFrom-Json
+Check (@($cleanStatus.cleanup | Where-Object videoId -eq 'tt7654321').Count -eq 0) 'Unwatched cancela limpeza pela API'
