@@ -4,10 +4,10 @@ current_phase: 3
 current_phase_name: Preparar episódios a partir de fontes
 status: in_progress
 stopped_at: Tela de gestão /list publicada, separada da automação; HTTP e dados preservados.
-last_updated: "2026-11-17T01:18:05.988Z"
+last_updated: "2026-11-17T02:17:51.502Z"
 last_activity: 2026-11-16
 last_activity_desc: biblioteca local 0.2 entregue; 65 checks HTTP e 7 de recuperação aprovados.
-state_head: c8b1e8b8200b0c72116ac806c5e9f458371d50bc
+state_head: 821160a3f96b9f6a1d9a321b9f34debe9475a6e8
 progress:
   total_phases: 6
   completed_phases: 0
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-11-16)
 Phase: 3 of 6 (Preparar episódios a partir de fontes)
 Plan: 1 of 1 in current phase
 Status: Automação inicial implementada; UAT autenticado e demais critérios amplos da fase pendentes
-Last activity: 2026-11-16 - Completed quick task 261116-uvf: limpeza automática 72h após watched, cancelada por unwatched.
+Last activity: 2026-11-16 - Completed quick task 261116-wbg: botão Cancelar para remover downloads com falha da lista.
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -98,6 +98,7 @@ Usuário confirmou reprodução básica na TCL. Duração, seek, áudio/legendas
 | 261116-gic | Renomear projeto para C4K e preservar dados locais | 2026-11-16 | 32213b1 | [261116-gic-renomear-projeto-para-c4k-e-preservar-da](./quick/261116-gic-renomear-projeto-para-c4k-e-preservar-da/) |
 | 261116-slz | Configurar pastas de incompletos e completos pelo painel | 2026-11-16 | 436922e | [261116-slz-configurar-diretorios-de-downloads-incom](./quick/261116-slz-configurar-diretorios-de-downloads-incom/) |
 | 261116-uvf | Limpar filmes e episodios 72 horas apos watched, cancelando por unwatched | 2026-11-16 | c8b1e8b | [261116-uvf-limpar-filmes-e-episodios-tres-dias-apos](./quick/261116-uvf-limpar-filmes-e-episodios-tres-dias-apos/) |
+| 261116-wbg | Adicionar Cancelar aos downloads com falha para remover da lista | 2026-11-16 | 821160a | [261116-wbg-adicionar-cancelar-aos-downloads-com-fal](./quick/261116-wbg-adicionar-cancelar-aos-downloads-com-fal/) |
 
 ## Session Continuity
 
