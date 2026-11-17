@@ -1,122 +1,298 @@
 # C4K
 
-Addon Stremio e servidor local .NET para preparar mídia no PC e reproduzir na TV. **Versão 0.3: automação com qBittorrent**, seleção de fontes 4K e catálogo sem cópias. Antecipação por evento de reprodução permanece na próxima fase.
+C4K is a Windows server and Stremio addon that downloads movies and episodes to a PC and serves completed files to a TV over the home network. Once a title is ready, playback uses the local file rather than relying on torrent seeders during the session.
 
-## Requisitos
+The current implementation uses ASP.NET Core, SQLite, and the native qBittorrent Web API. Playback has been successfully validated on a TCL C6K running Android TV 14.
 
-- Windows 11 x64 para executar e testar a integração completa.
-- SDK .NET indicado em `global.json` para desenvolver ou compilar. O executável publicado é self-contained e dispensa SDK, Node e Docker.
-- qBittorrent 5.x com Interface Web local para downloads e verificação de exclusões.
-- Stremio e PC na mesma rede; PC ligado e sem suspensão durante downloads e reprodução.
+## Contents
 
-Use apenas arquivos e fontes para os quais você possua autorização de acesso. O repositório não inclui mídia, credenciais ou fontes privadas.
+- [Requirements](#requirements)
+- [Initial setup](#initial-setup)
+- [Everyday use](#everyday-use)
+- [Download automation](#download-automation)
+- [Library and storage](#library-and-storage)
+- [Automatic cleanup](#automatic-cleanup)
+- [Configuration reference](#configuration-reference)
+- [Backup and recovery](#backup-and-recovery)
+- [Updating the server](#updating-the-server)
+- [Troubleshooting](#troubleshooting)
+- [Development and repository layout](#development-and-repository-layout)
 
-## Iniciar no PC
+## Requirements
 
-Com SDK .NET 10.0.400 instalado, na raiz do projeto:
+| Component | Requirement |
+| --- | --- |
+| Server PC | Windows 11 x64, local storage, and a reliable connection to the home network |
+| Downloader | qBittorrent 5.x with its Web UI enabled on the same PC |
+| Client | Stremio on a device that can reach the PC over the local network |
+| Building from source | .NET SDK specified in [global.json](global.json), currently 10.0.400 |
+| Running a published build | No .NET SDK, Node.js, Docker, or external database required |
 
-```powershell
-dotnet run --project src/C4K.App
-```
+Keep the PC powered on and awake during downloads and playback. Actual playback performance depends on the file bitrate, PC storage, network, and client codec support. C4K does not transcode video.
 
-Abra **http://127.0.0.1:48241/admin/**. Configure usuário e senha da Interface Web do qBittorrent 5.x em **http://127.0.0.1:8082**, salve, teste a conexão e ative a automação. O provedor padrão é `https://torrentio.strem.fun/manifest.json`. A senha fica protegida pelo Windows (DPAPI CurrentUser), fora do repositório e das respostas do painel.
+Use only media and sources you are authorized to access. The repository does not contain media files, private sources, or credentials.
 
-A gestão dos arquivos fica em **http://127.0.0.1:48241/list**, acessível pelo link **Gerenciar biblioteca**. Essa tela reúne busca, filtro de filmes/episódios, ordenação por tamanho, confirmação de exclusão física e cadastro de vídeos já completos em done. O total representa o tamanho lógico dos arquivos cadastrados e não soma novamente caminhos repetidos. A página principal fica concentrada na automação e nas tarefas ativas/falhas; vídeos prontos aparecem na biblioteca. Ambas as telas são restritas ao PC na porta administrativa.
+## Initial setup
 
-Quando o Stremio envia `libraryAdd`, a intenção é persistida junto com o evento. Filmes geram uma solicitação; séries novas preparam os dois primeiros episódios regulares já lançados na sequência do Cinemeta, normalmente T01E01/T01E02. Datas futuras/ausentes aguardam reconsulta. Não reinicia o acompanhamento quando já existe episódio assistido conhecido. A solicitação manual por IMDb/episódio continua individual. O resolvedor escolhe maior contagem de seeds informada entre fontes 4K/2160p com hash torrent. Isso não garante peers disponíveis. Fontes sem contagem interpretável não são escolhidas automaticamente. Solicitação manual por IMDb/episódio ou magnet está disponível no painel; não importa retroativamente toda a biblioteca Stremio.
+### 1. Build the Windows application
 
-O título e ano são consultados no Cinemeta para identificar a solicitação e o nome de exibição do torrent. Episódios incluem temporada/episódio. Essa identificação não renomeia arquivos físicos. Se o serviço de metadados estiver indisponível, o ID continua sendo usado como fallback.
-
-Com a automação ativada, marcar um episódio de série como **Watched/assistido** assegura os dois sucessores na sequência do Cinemeta, incluindo mudança de temporada. Só enfileira episódios lançados; data ausente ou futura aguarda reconsulta em seis horas. Ao chegar ao fim da lista conhecida, não inventa uma próxima temporada. Marcação em lote usa o último episódio regular informado; especiais da temporada zero não iniciam antecipação. Marcar a série inteira sem IDs de episódios mostra aviso no painel. Marcações antigas/repetidas não retrocedem a série nem duplicam tarefas, e arquivos já cadastrados como prontos não são baixados novamente.
-
-O painel mostra o resultado em **Próximos episódios**. Falha de consulta de metadados é reavaliada após dez minutos. Falha de download segue exigindo retry explícito; marcar como não assistido não cancela tarefas nem apaga arquivos. Dois episódios com índices válidos podem compartilhar o mesmo torrent, preservando a união dos arquivos selecionados; exclusão de arquivos em pacote compartilhado continua protegida. O gatilho depende de o Stremio enviar `watched` com `videoId`; não importa histórico antigo e não presume que iniciar a reprodução equivale a marcar como assistido.
-
-Filmes e séries cadastrados com IMDb incluem capa HTTPS no catálogo e nos detalhes do addon. As imagens vêm do MetaHub e dependem da internet ou do cache do Stremio; o vídeo continua sendo servido pelo PC. IDs locais sem IMDb não recebem uma capa presumida. Reabra o catálogo para atualizar imagens em cache.
-
-As pastas de incompletos e completos são configuráveis no painel e ficam salvas após reiniciar. A troca não move arquivos ou torrents existentes. Para trocar a pasta de completos, conclua as tarefas pendentes e coloque os arquivos cadastrados no destino mantendo as subpastas.
-
-Magnets são enviados pela API, por padrão com arquivos incompletos em `C:\media\new` e finalizados em `C:\media\done`. Não é necessário gravar magnets como arquivos na pasta monitorada. Caminhos são definidos por nova tarefa; tarefas antigas e preferências globais do qBittorrent não são alteradas. O catálogo referencia diretamente o arquivo completo de done, após confirmar conclusão e ausência de movimentação/verificação. Pacotes exigem índice de vídeo válido ou um único vídeo; nenhuma escolha implícita pelo maior arquivo. Episódios no mesmo pacote mantêm a união dos índices solicitados. A publicação aguarda conclusão de todos os arquivos selecionados no torrent.
-
-**Apagar vídeo e retirar do catálogo exclui fisicamente o vídeo de done**, mediante confirmação. Não exclui diretórios nem outros arquivos do pacote. A tarefa própria é removida do qBittorrent com `deleteFiles=false` antes da exclusão exata; tarefas externas, compartilhamento e arquivos em uso bloqueiam a operação. A conexão com qBittorrent é necessária para verificar essa proteção. O cadastro manual aceita somente arquivos já completos na raiz done, sem copiar. Importações antigas com cópia não são retomadas pela versão 0.3. MP4, MKV, WEBM e M4V são aceitos; não há transcodificação.
-
-Copie o manifest privado pelo painel e instale diretamente no Stremio. No catálogo C4K, abra a amostra cadastrada. Para associar arquivo a uma obra existente, use o IMDb correto; episódios usam o ID da série seguido de `:temporada:episódio`. Primeiro teste filme com ID local `c4k:amostra` para separar a prova de rede da associação de metadados.
-
-Para facilitar digitação na TV, o painel fornece `http://IP-DO-PC:48240/CODIGO/manifest.json`, com código de dez caracteres. O alias atende manifest e recursos diretamente, sem redirecionar. O endereço longo anterior continua funcionando. Esse código é uma chave para teste doméstico na LAN, sem exposição à internet; trocar secrets.json também revoga o endereço curto. Permissões de rede local do navegador continuam necessárias.
-
-PC e TV devem estar na mesma LAN e o PC precisa permanecer ligado. O host escuta na porta **48240** para addon/mídia; painel e dados administrativos só na porta loopback **48241**. Se o Windows solicitar liberação de rede, permita apenas rede privada. O programa não altera firewall nem roteador. Não encaminhe portas para a internet.
-
-O endereço LAN é detectado automaticamente por interface ativa com gateway. Se houver VPN ou endereço incorreto, configure antes de iniciar:
+From the repository root:
 
 ```powershell
-$env:C4K_PUBLIC_URL = 'http://192.168.1.50:48240'
-dotnet run --project src/C4K.App
-```
-
-Use o IP real do PC, preferencialmente reservado no DHCP. O link de instalação contém uma chave de acesso; não publique nem compartilhe. HTTP doméstico não cifra tráfego. Suporte a instalação HTTP LAN precisa ser confirmado na TV. Nenhum certificado ou túnel é exigido ou instalado automaticamente.
-
-### “Failed to fetch” ao instalar no PC
-
-O Stremio Windows usa WebView2 para carregar a interface web. Versões atuais do motor podem bloquear acesso de `https://web.stremio.com` a endereços locais se a permissão de rede local estiver negada. Resposta 200 no PowerShell não comprova que o navegador tenha essa permissão; trocar IP LAN por localhost também pode continuar bloqueado.
-
-No painel C4K, use **Instalar pelo navegador** e permita o acesso à rede local para `web.stremio.com` quando solicitado. Se já foi negado, reveja a permissão desse site no Edge/Chrome. Entre na mesma conta do Stremio da TV para sincronizar o addon; isso não comprova reprodução na TV ou acesso posterior no aplicativo Windows. Não desative segurança global do navegador. [Orientação Microsoft](https://support.microsoft.com/en-us/edge/control-a-website-s-access-to-the-local-network-in-microsoft-edge).
-
-O botão do aplicativo usa `stremio:///addons?addon=...` para preservar o `http://` completo. A forma simples `stremio://host/manifest.json` pode ser reconstruída como HTTPS pelo Stremio atual, incompatível com este host HTTP. [Código oficial do cliente](https://github.com/Stremio/stremio-web/blob/development/src/App/ShellOpenHandler.ts).
-
-## Dados locais e diagnóstico
-
-Por padrão, `%LOCALAPPDATA%\C4K` contém `secrets.json`, `automation.json`, `library.json` e `c4k.db`; vídeos ficam em `C:\media\done`. Proteja esse diretório como dados privados. Não o coloque no Git. `secrets.json` mantém dois tokens separados (addon/mídia), fora das URLs de log e independentes do painel. Para revogar o pareamento, use o botão de gerar novos links.
-
-A renomeação para C4K preservou os dados desta instalação, tokens e URL do manifest. O catálogo anterior segue como alias para clientes já instalados. Se o Stremio mantiver o nome antigo em cache, atualize/reinstale o addon com a mesma URL para carregar o nome C4K.
-
-Variáveis opcionais: `C4K_DATA_DIR`, `C4K_MEDIA_ROOT`, `C4K_ADDON_PORT`, `C4K_ADMIN_PORT`, `C4K_PUBLIC_URL`. O cadastro direto recusa caminhos fora da raiz, links simbólicos/junctions e pastas de rede. Não altere arquivos durante reprodução.
-
-Em **Rede e links de acesso**, salve o IP deste PC para persistir em `network.json`. Uma variável `C4K_PUBLIC_URL` explícita tem prioridade. Gerar novos links revoga os anteriores, preservando arquivos e catálogo; será necessário reinstalar o addon. `library.json` mantém a raiz de completos; instalações antigas precisam migrar referências antes de mudar a raiz. Trocar configuração não move arquivos automaticamente.
-
-O painel mostra os últimos 100 eventos recebidos; banco retém até 5.000. A presença de `libraryAdd` ou `start` só demonstra um evento recebido: requests simuladas não aprovam compatibilidade com Stremio Android TV. Não há importação de biblioteca antiga ou replay garantido. Reprodução por player externo pode mudar os eventos disponíveis.
-
-## Limpeza e cancelamento
-
-Novos eventos `watched` de filmes ou episódios individuais agendam a exclusão física e a remoção do catálogo após 72 horas, mesmo com downloads automáticos desativados. `unwatched` cancela a limpeza pendente. Os agendamentos sobrevivem ao reinício e aparecem no painel. Não há limpeza retroativa do histórico antigo. Arquivos em uso ou ligados a tarefas externas são preservados; pacotes compartilhados aguardam os demais itens cadastrados vencerem. Falhas são tentadas novamente após uma hora. O evento ainda depende do suporte do cliente Stremio.
-
-Downloads com falha oferecem **Tentar novamente** e **Cancelar**. Cancelar remove o item da fila exibida, sem apagar arquivos ou alterar a tarefa existente no qBittorrent. Eventos automáticos não reativam esse item; uma solicitação manual explícita pode adicioná-lo novamente.
-
-## Verificação automatizada
-
-```powershell
-dotnet build src/C4K.App -c Release
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Smoke-Test.ps1
-dotnet run --project tests/C4K.LibraryTests -c Release
 dotnet publish src/C4K.App -c Release -r win-x64 --self-contained true -o artifacts/win-x64
+```
+
+Keep the entire output directory together. This is a self-contained application folder; a Windows installer is not implemented yet.
+
+### 2. Start qBittorrent and C4K
+
+Enable qBittorrent's Web UI and make it available locally at `http://127.0.0.1:8082`, or choose another local port and configure C4K accordingly.
+
+Start C4K in the background:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-C4K.ps1 -Background
+```
+
+Open the [dashboard](http://127.0.0.1:48241/admin/), enter the qBittorrent Web UI address and credentials, save, and test the connection. The password field can be left empty when saving later changes to retain the saved password.
+
+### 3. Configure storage and automation
+
+The dashboard lets you change the incomplete and completed download directories. Defaults are:
+
+| Purpose | Default directory |
+| --- | --- |
+| Incomplete downloads | `C:\media\new` |
+| Completed files served by C4K | `C:\media\done` |
+
+The default provider manifest is `https://torrentio.strem.fun/manifest.json`. Configure your authorized provider, then enable automatic downloads when ready. Magnets are sent directly to qBittorrent through its API; no watched folder is needed.
+
+### 4. Connect Stremio
+
+1. Copy the TV installation address from the dashboard and install that manifest in Stremio.
+2. Use the LAN address for the TV. An address starting with `127.0.0.1` only works on the PC itself.
+3. Open the C4K catalog or an associated title in Stremio to play a completed file.
+
+The dashboard provides separate installation links for the PC and TV. Treat these URLs as private access keys. If the PC's LAN address is incorrect, save the correct address in the dashboard's network settings. A DHCP reservation helps keep the address stable.
+
+The dashboard is currently in Portuguese; this guide describes the purpose of each control in English.
+
+## Everyday use
+
+Run these commands from the repository root.
+
+| Task | Command or location |
+| --- | --- |
+| Start after reboot | `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-C4K.ps1 -Background` |
+| Stop the background server | `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Stop-C4K.ps1` |
+| Open automation, queue, and events | [Dashboard](http://127.0.0.1:48241/admin/) |
+| Search, register, or delete local videos | [Library](http://127.0.0.1:48241/list) |
+
+C4K does not currently install itself as a Windows service or configure automatic startup. After rebooting, start qBittorrent and C4K again. Closing the browser does not stop the background server.
+
+The launcher records its process ID in `artifacts/server.pid`. The stop script only manages that recorded process. If you start C4K directly in a terminal, stop it with `Ctrl+C` instead.
+
+## Download automation
+
+With automatic downloads enabled, C4K processes events received from Stremio:
+
+| Event or action | Behavior |
+| --- | --- |
+| Add a movie to the Stremio library | Queue that movie |
+| Add a new series to the Stremio library | Prepare the first two released regular episodes, usually S01E01 and S01E02 |
+| Mark a specific episode as watched | Prepare its next two released regular episodes, including a season transition |
+| Start playback | Record the event; playback alone does not trigger episode preloading |
+| Mark an item as unwatched | Cancel its pending cleanup; existing downloads remain unchanged |
+
+Episode order and release dates come from Cinemeta. Future or missing release dates are checked again after six hours; metadata lookup failures are retried after ten minutes. At the end of the known episode list, C4K waits for updated metadata rather than inventing a future season.
+
+Repeated events do not duplicate download jobs or move known series progress backward. When a watched event contains multiple episodes, preloading uses the latest regular episode in that batch. A series-level watched event without episode IDs cannot identify where you stopped. Season-zero specials do not anchor preloading.
+
+C4K only reacts to events the Stremio client actually sends. Check the dashboard's received events when diagnosing automation. Existing Stremio library contents and old watched history are not imported automatically.
+
+### Source selection and manual requests
+
+Automatic selection chooses the highest reported seed count among recognizable 4K/2160p sources with a torrent hash. A reported count does not guarantee available peers or a successful download. Sources without a usable seed count are not selected automatically.
+
+Use the dashboard to request an individual movie or episode by IMDb ID, or to supply a magnet manually:
+
+- Movie: `tt1234567`.
+- Episode: `tt1234567:1:2` for season 1, episode 2.
+- Multi-video torrent: provide the exact zero-based video file index when selection is ambiguous.
+
+C4K does not silently pick the largest video in a package. Titles and years are resolved through Cinemeta when available; display names do not rename physical files.
+
+### Failed downloads
+
+A failed job offers two actions:
+
+- **Retry** attempts the download again.
+- **Cancel** removes it from the displayed queue without deleting files or changing the existing qBittorrent task.
+
+Cancellation survives restarts. Automatic events do not reactivate a canceled job; an explicit manual request can queue it again. Because canceling only affects C4K's queue, inspect qBittorrent separately if you also want to stop or remove its torrent.
+
+## Library and storage
+
+The library page supports search, movie/episode filters, size sorting, file availability, manual registration, and confirmed deletion. Total size counts repeated file paths only once.
+
+C4K registers completed videos directly from the configured completed directory, including subdirectories. It does not create a second copy. Supported video extensions are MP4, MKV, WEBM, and M4V. Files outside that directory, network paths, symbolic links, and junctions are rejected.
+
+For manual registration, provide the full path to an already completed file, a title, and optionally its IMDb ID. Select the season and episode for series entries. IMDb-backed items receive posters from MetaHub; poster loading requires internet access or a Stremio cache, while playback uses the local video.
+
+A downloaded file becomes available only after completion is confirmed and the torrent is no longer moving or being checked. For a package, all selected files must be complete. Multiple requested episodes can share the same torrent while retaining their selected file indexes.
+
+### Change download directories
+
+1. Finish or resolve pending C4K download/import tasks before changing the completed directory.
+2. Move or copy registered videos and subtitles to the new location, preserving relative paths and subdirectories.
+3. Update existing torrent locations in qBittorrent as needed.
+4. Save the new directories in the C4K dashboard.
+
+C4K validates registered files before accepting a new completed directory. Saving a directory does not move files, change existing torrent locations, or change qBittorrent's global preferences. New C4K torrent tasks receive the configured incomplete and completed paths.
+
+### Delete a video manually
+
+Deleting through the library removes the physical video and its catalog entry, not just the entry. Unshared registered subtitles are also removed. C4K removes its own torrent task with `deleteFiles=false` before deleting the specific file; it does not delete an entire directory or unrelated package contents.
+
+A working qBittorrent connection is required to check ownership. Files in use, externally managed torrents, and shared items can block deletion.
+
+## Automatic cleanup
+
+**A new individual movie or episode `watched` event schedules physical deletion after 72 hours.** This runs even when automatic downloads are disabled.
+
+- The deadline starts when C4K receives the first watched event. Duplicate events do not postpone it.
+- Marking the item as `unwatched` cancels its pending cleanup. A later watched event starts a new deadline.
+- Schedules survive restarts. If the PC is off at the deadline, cleanup runs when C4K is available again.
+- The dashboard shows pending deadlines and errors. Failed cleanup is retried after one hour.
+- Files in use and files belonging to external torrents are preserved. Shared torrent packages wait until the other managed items are ready and their deadlines have elapsed.
+- Old watched history is not processed retroactively. A generic series-level mark without episode IDs does not schedule deletion of the entire series.
+
+Disabling downloads does not disable cleanup. To keep a scheduled item, mark it as unwatched before its deadline and check that C4K received the event.
+
+## Configuration reference
+
+### Network endpoints
+
+| Service | Default address | Access |
+| --- | --- | --- |
+| Dashboard | `http://127.0.0.1:48241/admin/` | Server PC only |
+| Library | `http://127.0.0.1:48241/list` | Server PC only |
+| Addon and media | TCP port `48240` | Home network |
+| qBittorrent Web UI | `http://127.0.0.1:8082` | Local API connection |
+
+The TV manifest has the form `http://PC-LAN-IP:48240/PRIVATE-CODE/manifest.json`. Copy the actual URL from the dashboard rather than constructing it yourself.
+
+Allow C4K through Windows Firewall only on the private home network. C4K does not configure the firewall or router automatically. Do not forward these ports to the internet. LAN traffic uses HTTP and is not encrypted; no certificate or tunnel is required for this setup.
+
+### Environment overrides
+
+Set these before starting the server. A running process does not pick up later environment changes.
+
+| Variable | Default or fallback | Purpose |
+| --- | --- | --- |
+| `C4K_DATA_DIR` | `%LOCALAPPDATA%\C4K` | Database, credentials, and saved settings |
+| `C4K_MEDIA_ROOT` | Saved library directory, then `C:\media\done` | Completed-file root; locks dashboard changes while set |
+| `C4K_ADDON_PORT` | `48240` | Addon and media listener |
+| `C4K_ADMIN_PORT` | `48241` | Loopback-only dashboard listener |
+| `C4K_PUBLIC_URL` | Saved network address, then LAN detection | Advertised HTTP address; overrides dashboard network settings |
+
+The addon and admin ports must be different and between 1024 and 65535. A public URL override must use the configured addon port.
+
+Prefer saving the LAN address through the dashboard. Use an environment override when needed, for example with multiple interfaces or a VPN:
+
+```powershell
+$env:C4K_PUBLIC_URL = 'http://192.168.1.50:48240' # Replace with this PC's LAN address.
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-C4K.ps1 -Background
+```
+
+## Backup and recovery
+
+Application state lives in `%LOCALAPPDATA%\C4K` by default, independently of the executable folder.
+
+| File | Contents |
+| --- | --- |
+| `c4k.db` | Library, jobs, received events, episode plans, and cleanup schedules |
+| `secrets.json` | Private addon and media access tokens |
+| `automation.json` | Provider, qBittorrent settings, protected password, and incomplete directory |
+| `library.json` | Saved completed directory, when configured through the dashboard |
+| `network.json` | Saved LAN address, when configured through the dashboard |
+
+To back up, stop C4K and copy the entire data directory, including any SQLite companion files present. Back up completed and incomplete media directories separately. For an ongoing qBittorrent download, also preserve qBittorrent's own configuration and resume data; the C4K database is not a replacement for them.
+
+Restore with C4K stopped, retain the expected media paths, then restart and check the dashboard. qBittorrent credentials use Windows DPAPI tied to the Windows user: moving data to another account or PC may require entering the password again. Keeping `secrets.json` preserves the existing addon links.
+
+Never commit the data directory or backup files. If installation links are exposed, generate new links in the dashboard and reinstall the addon on the clients. This revokes the old links while retaining the library files.
+
+## Updating the server
+
+Back up application data first. If the server was started by the launcher:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Stop-C4K.ps1
+dotnet publish src/C4K.App -c Release -r win-x64 --self-contained true -o artifacts/win-x64
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-C4K.ps1 -Background
+```
+
+Check that publishing succeeded before starting again. If using another launch method, stop that process before replacing its executable files. Updating the application folder does not require deleting the data directory or generating new addon links.
+
+## Troubleshooting
+
+| Symptom | What to check |
+| --- | --- |
+| Dashboard does not open | Start C4K; verify that the configured admin port is free and use the browser on the server PC. |
+| TV cannot connect | Confirm the PC is awake, both devices share the LAN, the manifest uses the current PC LAN address, and the firewall allows the addon port on the private network. |
+| qBittorrent connection fails | Confirm qBittorrent is running, its Web UI is enabled, and the saved local URL, port, and credentials are correct. Test the saved connection in the dashboard. |
+| No download follows a Stremio action | Look for the event in the dashboard, check automation is enabled, and ensure the event identifies the movie or episode. Old library/history entries are not automatically imported. |
+| An upcoming episode is not queued | Check release metadata. Future or missing dates wait for another check; metadata errors have a separate retry delay. |
+| Download fails | Read its error, inspect qBittorrent, and use Retry after correcting the issue. Cancel only hides/cancels the C4K job. |
+| Completed file is missing from Stremio | Check the C4K library, torrent completion, selected files, and whether qBittorrent is moving or checking the content. Refresh Stremio's catalog. |
+| Directory change is rejected | Resolve pending tasks, place registered files and subtitles under the new root, and check whether `C4K_MEDIA_ROOT` is set. |
+| Cleanup or manual deletion fails | Check qBittorrent connectivity, external/shared torrent ownership, file availability, and whether the video is in use. Review the cleanup error in the dashboard. |
+| A canceled torrent keeps downloading | Cancellation only changes the C4K queue. Manage the existing torrent directly in qBittorrent. |
+
+### Stremio installation reports "Failed to fetch"
+
+Use the dashboard's browser installation option and allow local network access for `web.stremio.com` if prompted. If access was denied earlier, review that site's permissions in Edge or Chrome. Do not disable browser security globally.
+
+A successful request in PowerShell does not prove that a browser or WebView has permission to access the LAN. Use the PC-specific link on the PC and the LAN link on the TV. If using account synchronization, sign in to the intended Stremio account on both devices.
+
+### Inspect received events
+
+The dashboard displays the latest 100 events; the database retains up to 5,000. Received events help distinguish a client that did not send a notification from a download or metadata failure. Player changes or another Stremio client may affect which events are sent.
+
+## Development and repository layout
+
+To run from source in a terminal:
+
+```powershell
+dotnet run --project src/C4K.App
+```
+
+Stop that process with `Ctrl+C`. Do not run it alongside the published server on the same ports.
+
+To validate a change:
+
+```powershell
+dotnet restore C4K.slnx --locked-mode
+dotnet build C4K.slnx -c Release --no-restore
+dotnet run --project tests/C4K.LibraryTests -c Release --no-build
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Smoke-Test.ps1
+```
+
+After publishing, validate the distribution with:
+
+```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Smoke-Test.ps1 -Published
 ```
 
-Após publicação, execute `artifacts\win-x64\C4K.App.exe` sem SDK. Ainda é uma pasta de distribuição, não o instalador definitivo. O teste automatizado usa fixture binária para contratos HTTP e não substitui vídeo 4K real.
+The complete suite runs on Windows because credential protection uses DPAPI. Tests use isolated fixtures and simulated APIs; HTTP checks are not a substitute for real playback testing. GitHub Actions builds, runs the checks, and validates a self-contained Windows publication on pushes and pull requests.
 
-Para iniciar em segundo plano: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Start-C4K.ps1 -Background`. Para encerrar esse processo: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Stop-C4K.ps1`. O launcher registra apenas o PID em artifacts e não abre janelas.
+| Path | Purpose |
+| --- | --- |
+| `src/C4K.App/` | Server, Stremio addon, dashboard, library, and downloader integration |
+| `tests/C4K.LibraryTests/` | Persistence, automation, and file-operation checks |
+| `scripts/` | Start/stop launchers and HTTP smoke checks |
+| `.github/workflows/ci.yml` | Windows CI workflow |
+| `.planning/` | Historical decisions, research, and implementation records; older documents may describe superseded behavior |
 
-## Testar na TCL C6K
-
-1. Registrar versão exata do Stremio e player usado, além de Android TV 14.
-2. Instalar o manifest; reproduzir vídeo completo, testar áudio/legendas, três seeks e 60 minutos de sessão.
-3. Adicionar/remover obra na biblioteca e iniciar/pausar/encerrar vídeos por fonte C4K e outra fonte; consultar eventos no painel.
-4. Reprodução básica na TCL foi confirmada pelo usuário. Registrar resultados detalhados conforme [.planning/phases/01-stremio-compatibility/01-VALIDATION.md](.planning/phases/01-stremio-compatibility/01-VALIDATION.md); duração, legendas, autoplay e eventos específicos permanecem como verificações separadas.
-
-## Estrutura do repositório
-
-- `src/C4K.App`: servidor, addon, painel e integração com qBittorrent.
-- `tests/C4K.LibraryTests`: verificações de persistência, automação e arquivos.
-- `scripts`: inicialização, encerramento e testes HTTP.
-- `.planning`: histórico de decisões e limites de validação; documentos antigos podem descrever abordagens substituídas.
-
-Veja [CONTRIBUTING.md](CONTRIBUTING.md) para desenvolver e [SECURITY.md](SECURITY.md) para cuidados com dados e acesso. O GitHub Actions valida o projeto em Windows a cada push e pull request.
-
-## Primeiro envio ao GitHub
-
-Crie um repositório vazio na sua conta, sem gerar README, licença ou `.gitignore` pelo site. Na raiz deste projeto, substitua `SEU-USUARIO` pelo seu usuário:
-
-```powershell
-git remote add origin https://github.com/SEU-USUARIO/c4k.git
-git push -u origin main
-```
-
-O projeto ainda não define uma licença de distribuição. O titular deve escolher uma antes de autorizar reutilização por terceiros.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution instructions and [SECURITY.md](SECURITY.md) for access and data protection. No distribution license has been selected yet.
