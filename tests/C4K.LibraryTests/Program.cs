@@ -244,6 +244,12 @@ Check(episodePlan.VideoIds.SequenceEqual(new[]{"tt1234567:1:2","tt1234567:2:1"})
 Check(EpisodePlanner.Next(episodeJson.RootElement,"tt1234567","tt1234567:2:1",now) is { WaitingForRelease:true,VideoIds.Length:0 }, "Próximo episódio futuro não é baixado");
 Check(EpisodePlanner.Next(episodeJson.RootElement,"tt1234567","tt1234567:2:2",now).VideoIds.Length==0, "Fim da lista não inventa episódios");
 var watchDir=Path.Combine(directory,"watched"); Directory.CreateDirectory(watchDir); var watchRepo=new Repository(watchDir);
+watchRepo.Record("player","series","tt1234567:1:1","start",0,1000,null,true);
+Check(watchRepo.WatchedPlans().Single() is {SeriesId:"tt1234567",Anchor:"tt1234567:1:1",FromBeginning:false}, "Player start de episódio cria plano ancorado no episódio reproduzido");
+watchRepo.Record("player","series","tt1234567:1:1","pause",500,1000,null,true);
+Check(watchRepo.WatchedPlans().Count==1, "Player pause não altera o episódio âncora");
+watchRepo.Record("player","series","tt1234567","start",0,1000,null,true);
+Check(watchRepo.WatchedPlans().Count==1, "Player start sem ID de episódio não cria plano adicional");
 watchRepo.Record("library","series","tt1234567","watched",null,null,"tt1234567:1:1",true);
 var observed=watchRepo.WatchedPlans().Single();
 Check(new Repository(watchDir).WatchedPlans().Single().Anchor=="tt1234567:1:1", "Watched e intenção persistem após reinício");

@@ -50,6 +50,17 @@ public sealed partial class Repository
         cmd.CommandText = "INSERT INTO watched_plans VALUES($id,$body) ON CONFLICT(series_id) DO UPDATE SET body=$body";
         cmd.Parameters.AddWithValue("$body", JsonSerializer.Serialize(plan)); cmd.ExecuteNonQuery();
     }
+    private static void ObservePlaybackStarted(SqliteConnection db, SqliteTransaction tx, string videoId)
+    {
+        var separator = videoId.IndexOf(':');
+        if (separator <= 0) return;
+        var series = videoId[..separator];
+        if (!EpisodePlanner.ValidSeries(series) || EpisodePlanner.Position(videoId, series) is null) return;
+        using var cmd = db.CreateCommand(); cmd.Transaction = tx;
+        var plan = new WatchedPlan(series, videoId, "Pending", "Buscando os próximos dois episódios após iniciar a reprodução.", DateTimeOffset.MinValue);
+        cmd.CommandText = "INSERT INTO watched_plans(series_id,body) VALUES($id,$body) ON CONFLICT(series_id) DO UPDATE SET body=$body";
+        cmd.Parameters.AddWithValue("$id", series); cmd.Parameters.AddWithValue("$body", JsonSerializer.Serialize(plan)); cmd.ExecuteNonQuery();
+    }
     public void ApplyWatched(WatchedPlan observed, EpisodePlan? selection, string? error = null)
     {
         using var db = Open(); using var tx = db.BeginTransaction(); using var cmd = db.CreateCommand(); cmd.Transaction = tx;

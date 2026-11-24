@@ -75,6 +75,8 @@ public sealed partial class Repository
         }
         if (queueDownload && resource == "library" && type == "series" && action == "watched")
             ObserveWatched(db, transaction, id.Split(':')[0], videos ?? (id.Contains(':') ? id : null));
+        if (queueDownload && resource == "player" && type == "series" && action == "start")
+            ObservePlaybackStarted(db, transaction, id);
         if (resource == "library" && action is "watched" or "unwatched")
             ObserveCleanup(db, transaction, type, id, action, videos);
         transaction.Commit();
